@@ -1,0 +1,19 @@
+{
+  "name": "quant-monk-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Landing page + lead-gen funnel for a quant trading services startup. Static build, deployable to Hostinger shared hosting.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "lenis": "^1.1.13"
+  }
+}
