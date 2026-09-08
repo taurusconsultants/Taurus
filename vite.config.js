@@ -52,9 +52,21 @@ function brandTokens() {
         return match;
       });
 
+      const tags = [];
+
+      // Preview deploys (GitHub Pages) must not be indexed, or a half-finished
+      // copy on a github.io URL ends up competing with the real site in search
+      // results. This is deliberately an ENV FLAG rather than a config value:
+      // the same source builds both targets, and baking noindex into config.js
+      // would follow the build to Hostinger and deindex production.
+      //   Preview  → NOINDEX=1 npm run build   (the Pages workflow sets this)
+      //   Live     → npm run build             (no flag, indexable)
+      if (process.env.NOINDEX === '1') {
+        tags.push('<meta name="robots" content="noindex, nofollow" />');
+      }
+
       // Analytics only injected when actually configured, so the default
       // build ships with zero third-party requests.
-      const tags = [];
       if (analytics.googleAnalyticsId) {
         tags.push(
           `<script async src="https://www.googletagmanager.com/gtag/js?id=${analytics.googleAnalyticsId}"></script>`,

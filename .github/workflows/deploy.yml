@@ -1,0 +1,84 @@
+# ============================================================================
+#  GitHub Pages — PREVIEW deploy
+# ============================================================================
+#
+#  This publishes a preview copy of the landing page to
+#  https://<username>.github.io/<repo-name>/ on every push to main.
+#
+#  IMPORTANT — this is NOT the production deploy. Production is Hostinger,
+#  built locally and uploaded. Two consequences, both handled below:
+#
+#    1. NOINDEX=1 is set for this build ONLY. It injects a robots noindex tag
+#       so the github.io copy never gets indexed and never competes with the
+#       real site in search results. The Hostinger build (plain `npm run
+#       build`) does NOT set it, so production stays indexable.
+#
+#    2. No `base` override is needed. vite.config.js uses base: './', which
+#       emits relative asset paths that work at any URL depth — the Pages
+#       subpath AND the Hostinger root, from the same source. Do not change it
+#       to '/<repo-name>/' or the Hostinger build will 404 every asset.
+#
+#  One-time repo setup: Settings → Pages → Source: "GitHub Actions".
+# ============================================================================
+
+name: Deploy preview to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # lets you trigger a deploy by hand from the Actions tab
+
+# Least-privilege token, plus what the Pages deploy action requires.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race. In-progress runs finish rather than being
+# cancelled, so a half-published site can't be left live.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (preview — noindex)
+        env:
+          NOINDEX: '1'
+        run: npm run build
+
+      # Belt-and-braces: stops GitHub's Jekyll layer touching the output.
+      # public/.nojekyll should already put this in dist/, but if that file is
+      # ever removed this keeps the deploy working.
+      - name: Ensure .nojekyll
+        run: touch dist/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

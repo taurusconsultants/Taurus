@@ -29,6 +29,8 @@ This file is the source of truth for project state, decisions, and constraints.
 - [x] Form backend defaulted — Web3Forms (swappable)
 - [x] Pricing stance decided — page stays silent on price
 - [x] Market scope decided — any tradable instrument with data availability
+- [x] Site built — Vite scaffold, WebGL hero, full sample report, form, disclaimer
+- [x] GitHub Pages preview pipeline (Actions, noindex, `.nojekyll`)
 
 ### Pending
 - [ ] Project scaffold (Vite, directory structure, config/brand token file)
@@ -197,6 +199,54 @@ Keep the form to these three fields. Every extra field costs conversions.
 
 ---
 
+## Deployment
+
+**Two targets, one codebase, one `dist/`.**
+
+| Target | Purpose | Command | Indexed? |
+|---|---|---|---|
+| **Hostinger** | **Production** | `npm run build`, upload `dist/` | Yes |
+| **GitHub Pages** | Preview / sharing | Automatic on push to `main` | **No** |
+
+### Why `base: './'` must not change
+
+`vite.config.js` sets `base: './'`, emitting **relative** asset paths (`./assets/…`).
+That single setting is what lets the same build work at both the GitHub Pages subpath
+(`username.github.io/repo-name/`) and the Hostinger document root.
+
+> **Do not change this to `/<repo-name>/`.** It is the standard GitHub Pages advice and
+> it is wrong for this project: it pins the build to one GitHub path, and the identical
+> `dist/` would then 404 every asset on Hostinger. Relative paths already solve it.
+
+### The noindex flag
+
+The preview must not be indexed, or a github.io copy competes with the real site in
+search results. This is an **environment flag, not a config value** — deliberately:
+
+```
+npm run build           # production — indexable
+npm run build:preview   # NOINDEX=1 — injects <meta name="robots" content="noindex, nofollow">
+```
+
+If noindex lived in `src/config.js`, it would travel with the build to Hostinger and
+deindex production. The Pages workflow sets `NOINDEX=1`; nothing else does.
+
+### GitHub Pages setup
+
+- Workflow: `.github/workflows/deploy.yml` — builds on push to `main`, deploys the
+  artifact. No `dist/` is ever committed (`.gitignore` excludes it).
+- **One-time repo setting:** Settings → Pages → Source → **GitHub Actions**.
+- `public/.nojekyll` stops GitHub's Jekyll layer processing the output; the workflow
+  also `touch`es it as a fallback.
+
+### Canonical URL caveat
+
+`brand.url` is still the placeholder `taurusconsultants.com`. Canonical/OG tags point
+there. That is correct while Pages is preview-only, but **update `brand.url` the moment
+the real domain is registered**, or link previews and canonical tags point at nothing.
+
+---
+
 ## Brand Tokenization
 
 **The brand name is not final.** Never hardcode it.
@@ -315,3 +365,11 @@ lives, how the sample report is rendered, asset pipeline, brand config location.
 - 2026-09-08: Chart palette is blue/red (validated for colour-vision deficiency and
   contrast on the dark surface); the brand lime is a UI colour and is used for data only
   where a chart has a single series. Keep the two roles separate.
+- 2026-09-08: Added GitHub Pages as a **preview** target alongside Hostinger production.
+  Rejected the standard `base: '/<repo-name>/'` advice — `base: './'` was already set at
+  scaffold time and serves both targets from one build, whereas the repo-name base would
+  break the Hostinger deploy. See the Deployment section before changing this.
+- 2026-09-08: `noindex` for the preview is an env flag (`NOINDEX=1`), not a config value,
+  so it cannot leak into the Hostinger production build and deindex the real site.
+- 2026-09-08: Added `.gitignore` (repo had none) excluding `node_modules/` and `dist/`;
+  the Pages build produces `dist/` in CI rather than it being committed.
