@@ -67,6 +67,7 @@ We provide **fully personalized, human-delivered quant trading services** to tra
 - Signal visualization
 - Algo deployment
 - Trading idea refinement
+- Model evaluation (validating a client-trained model: leakage, CV rigour, decay)
 
 **The client supplies the trading idea/rules.** We refine and stress-test what they
 specify. We do **not** originate strategies and we do **not** give investment advice.
@@ -373,3 +374,8 @@ lives, how the sample report is rendered, asset pipeline, brand config location.
   so it cannot leak into the Hostinger production build and deindex the real site.
 - 2026-09-08: Added `.gitignore` (repo had none) excluding `node_modules/` and `dist/`;
   the Pages build produces `dist/` in CI rather than it being committed.
+- 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
+  model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
+  feature stability). Kept inside the hard positioning rule: we assess a client-supplied
+  model and report findings; we do not build models or advise on what to trade. Services
+  section heading is now "Six things, done by hand" — update it if the count changes.
