@@ -4,6 +4,7 @@ node_modules/
 # Build output — produced by `npm run build`, never committed.
 # GitHub Pages builds it in CI; Hostinger gets it uploaded from your machine.
 dist/
+brand/
 
 # Local env / secrets
 .env
