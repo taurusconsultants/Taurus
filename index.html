@@ -515,17 +515,28 @@
 
     <div class="form-wrap reveal">
       <form class="lead-form" id="leadForm" novalidate>
+        <!-- Email and phone: EITHER is enough, both is fine. Neither carries a
+             `required` attribute; the "at least one" rule is enforced in
+             src/js/form.js and surfaced in the shared [data-err="contact"] slot. -->
+        <p class="field-hint" id="contact-hint">
+          How should we reach you? <strong>Either one is enough</strong> — give both if you prefer.
+        </p>
+
         <div class="field">
-          <label for="f-email">Email</label>
-          <input type="email" id="f-email" name="email" autocomplete="email" required placeholder="you@domain.com" />
+          <label for="f-email">Email <span class="opt">— or use the number below</span></label>
+          <input type="email" id="f-email" name="email" autocomplete="email"
+                 aria-describedby="contact-hint" placeholder="you@domain.com" />
           <span class="err" data-err="email"></span>
         </div>
 
         <div class="field">
-          <label for="f-phone">Contact number</label>
-          <input type="tel" id="f-phone" name="phone" autocomplete="tel" required placeholder="+1 555 000 0000" />
+          <label for="f-phone">Contact number <span class="opt">— or use the email above</span></label>
+          <input type="tel" id="f-phone" name="phone" autocomplete="tel"
+                 aria-describedby="contact-hint" placeholder="+91 90000 00000" />
           <span class="err" data-err="phone"></span>
         </div>
+
+        <span class="err err-contact" data-err="contact"></span>
 
         <div class="field">
           <label for="f-msg">What are you looking for?</label>

@@ -545,6 +545,18 @@ button, input, textarea { font: inherit; color: inherit; }
   background: var(--surface); border: 1px solid var(--hairline);
   border-radius: var(--radius); padding: clamp(24px, 3vw, 36px);
 }
+/* "Either email or phone" hint sitting above the two contact fields. */
+.field-hint {
+  font-size: 13.5px; color: var(--text-2); line-height: 1.55; margin-bottom: 18px;
+}
+.field-hint strong { color: var(--text); font-weight: 600; }
+
+/* Lowercase qualifier inside an otherwise uppercase mono label. */
+.opt { text-transform: none; letter-spacing: 0; opacity: .6; }
+
+/* Shared error for the at-least-one-contact rule; pulled up under the pair. */
+.err-contact:not(:empty) { margin: -10px 0 18px; }
+
 .field { margin-bottom: 20px; }
 .field label {
   display: block; font-family: var(--mono); font-size: 11px;

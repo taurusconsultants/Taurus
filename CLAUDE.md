@@ -192,11 +192,22 @@ portfolio. Therefore:
 Two parallel paths, both prominent:
 1. **WhatsApp** — deep link with a prefilled message.
 2. **Form** — exactly three fields:
-   - Email
-   - Contact number
-   - What they're seeking from us (free text)
+   - Email — *required only if no phone given*
+   - Contact number — *required only if no email given*
+   - What they're seeking from us (free text) — **always required**
 
 Keep the form to these three fields. Every extra field costs conversions.
+
+**Contact rule: email OR phone, at least one — never both mandatory.** Neither input
+carries an HTML `required` attribute; the rule lives in `validate()` in
+`src/js/form.js`, with the message shown in the shared `[data-err="contact"]` slot.
+Format is checked per field *only when that field is filled in*. A prospect willing to
+share one channel but not the other is still a real lead — demanding both loses them.
+
+The submit payload omits an empty field entirely rather than sending `''`: Web3Forms
+treats `email` as reply-to and rejects a blank one, so a phone-only enquiry would fail
+if the key were sent empty. A "Reply via" line is added so the notification email shows
+at a glance which channel the lead actually left.
 
 ---
 
@@ -374,6 +385,12 @@ lives, how the sample report is rendered, asset pipeline, brand config location.
   so it cannot leak into the Hostinger production build and deindex the real site.
 - 2026-09-08: Added `.gitignore` (repo had none) excluding `node_modules/` and `dist/`;
   the Pages build produces `dist/` in CI rather than it being committed.
+- 2026-09-09: Lead form contact fields changed from **both required** to **either/or** —
+  email or phone, at least one. Requiring both cost conversions for no gain. `required`
+  attributes removed from both inputs; the rule is enforced in `validate()` and covered
+  by unit tests (either alone passes, neither fails, per-field format still enforced
+  when filled). `validate()` is exported from `src/js/form.js` purely so it stays
+  testable without a browser.
 - 2026-09-09: **Bug + guard — WhatsApp country code.** `brand.whatsappNumber` had been
   entered as the local subscriber number with no country code, while `whatsappDisplay`
   showed the `+91` form. That produces a `wa.me/<local-number>` link, which cannot
