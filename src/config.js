@@ -79,8 +79,11 @@ export const brand = {
  */
 export const form = {
   endpoint: 'https://api.web3forms.com/submit',
-  // accessKey: 'REPLACE-WITH-YOUR-WEB3FORMS-ACCESS-KEY', // << PLACEHOLDER >>
-  accessKey: 'R4de01c1e-dc41-4dff-9211-4f9eae44e79c', // << PLACEHOLDER >>
+
+  // A Web3Forms access key is a plain UUID: 8-4-4-4-12 hex characters, 36 long,
+  // no prefix. Anything else is rejected and every submission fails.
+  // (Was pasted once as 'R4de01c1e-…' — a stray leading R — which broke the form.)
+  accessKey: '4de01c1e-dc41-4dff-9211-4f9eae44e79c',
 
   subject: 'New enquiry from the Taurus website',
 };

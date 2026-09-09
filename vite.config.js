@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { brand, analytics } from './src/config.js';
+import { brand, analytics, form as formCfg } from './src/config.js';
 
 /**
  * Build-time brand token substitution.
@@ -19,6 +19,18 @@ function brandTokens() {
       `\n⚠️  [brand] whatsappNumber "${brand.whatsappNumber}" looks like it is MISSING ITS COUNTRY CODE.\n` +
         `    wa.me needs the full international number, digits only (India 91…, US 1…).\n` +
         `    Displayed as "${brand.whatsappDisplay}" — fix src/config.js before deploying.\n`
+    );
+  }
+
+  // Guard: a Web3Forms access key is a bare 36-char UUID. A stray character
+  // (a copy-paste artefact) is rejected by the API and every single enquiry
+  // fails — with nothing wrong on your end to look at. Caught at build time.
+  const KEY_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!KEY_RE.test(String(formCfg.accessKey).trim())) {
+    console.warn(
+      `\n⚠️  [form] accessKey "${formCfg.accessKey}" is NOT a valid Web3Forms key.\n` +
+        `    Expected a bare UUID — 36 chars, 8-4-4-4-12 hex, no prefix or spaces.\n` +
+        `    The form WILL fail for every visitor until this is fixed in src/config.js.\n`
     );
   }
 

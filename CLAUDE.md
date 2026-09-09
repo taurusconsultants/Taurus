@@ -385,6 +385,14 @@ lives, how the sample report is rendered, asset pipeline, brand config location.
   so it cannot leak into the Hostinger production build and deindex the real site.
 - 2026-09-08: Added `.gitignore` (repo had none) excluding `node_modules/` and `dist/`;
   the Pages build produces `dist/` in CI rather than it being committed.
+- 2026-09-09: **Bug + guard — Web3Forms access key.** The key had been pasted with a
+  stray leading `R` (`R4de01c1e-…`, 37 chars), so the API rejected every submission and
+  the form failed for all visitors. Web3Forms keys are bare 36-char UUIDs with no
+  prefix. Fixed, and `vite.config.js` now warns at build time if the key isn't a valid
+  UUID. The runtime error handler also logs the provider's own failure reason to the
+  console, since the visitor-facing message deliberately says nothing useful.
+  Note: Web3Forms cannot be tested with curl — Cloudflare blocks non-browser requests,
+  so the only way to verify a submission is to submit the real form in a browser.
 - 2026-09-09: Lead form contact fields changed from **both required** to **either/or** —
   email or phone, at least one. Requiring both cost conversions for no gain. `required`
   attributes removed from both inputs; the rule is enforced in `validate()` and covered

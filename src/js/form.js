@@ -136,7 +136,13 @@ export function initForm(cfg, brand) {
         throw new Error(json.message || 'Request failed');
       }
     } catch (err) {
-      console.warn('[form] submit failed:', err);
+      // Surface the provider's OWN reason — the generic message below tells the
+      // visitor nothing, and this is the only place the real cause appears.
+      console.error(
+        `[form] submission failed — ${err.message}\n` +
+          '  If this says the key is invalid, check form.accessKey in src/config.js:\n' +
+          '  it must be a bare 36-character UUID with no prefix.'
+      );
       status.className = 'form-status bad';
       status.innerHTML = `Something went wrong sending that. Please message us on WhatsApp, or email <a href="mailto:${brand.email}">${brand.email}</a>.`;
       btn.disabled = false;
