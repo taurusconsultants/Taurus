@@ -46,12 +46,12 @@ export const brand = {
 
   // -- Contact  << PLACEHOLDER >> -------------------------------------------
   // WhatsApp: international format, digits only, no + or spaces.
-  whatsappNumber: '15550134729',
-  whatsappDisplay: '+1 (555) 013-4729',
+  whatsappNumber: '9016451019',
+  whatsappDisplay: '+91 90164 51019',
   whatsappPrefill:
     "Hi — I have a trading strategy I'd like tested. Here's the idea:",
 
-  email: 'hello@taurusconsultants.com',
+  email: 'taurus.consultancyservice@gmail.com',
 
   // -- Domain  << PLACEHOLDER >> --------------------------------------------
   domain: 'taurusconsultants.com',
@@ -74,8 +74,10 @@ export const brand = {
  */
 export const form = {
   endpoint: 'https://api.web3forms.com/submit',
-  accessKey: 'REPLACE-WITH-YOUR-WEB3FORMS-ACCESS-KEY', // << PLACEHOLDER >>
-  subject: 'New enquiry from the website',
+  // accessKey: 'REPLACE-WITH-YOUR-WEB3FORMS-ACCESS-KEY', // << PLACEHOLDER >>
+  accessKey: 'R4de01c1e-dc41-4dff-9211-4f9eae44e79c', // << PLACEHOLDER >>
+
+  subject: 'New enquiry from the Taurus website',
 };
 
 /**
