@@ -9,7 +9,20 @@ import { brand, analytics } from './src/config.js';
  * one-file edit with zero runtime cost and no flash of unbranded content.
  */
 function brandTokens() {
-  const whatsappLink = `https://wa.me/${brand.whatsappNumber}?text=${encodeURIComponent(
+  // Guard: a WhatsApp number without its country code produces a wa.me link
+  // that fails silently — the visitor sees "phone number shared via url is
+  // invalid" and the lead is lost with no error anywhere. Cheap to check,
+  // expensive to miss, so the build shouts about it.
+  const waDigits = String(brand.whatsappNumber).replace(/\D/g, '');
+  if (waDigits.length < 11) {
+    console.warn(
+      `\n⚠️  [brand] whatsappNumber "${brand.whatsappNumber}" looks like it is MISSING ITS COUNTRY CODE.\n` +
+        `    wa.me needs the full international number, digits only (India 91…, US 1…).\n` +
+        `    Displayed as "${brand.whatsappDisplay}" — fix src/config.js before deploying.\n`
+    );
+  }
+
+  const whatsappLink = `https://wa.me/${waDigits}?text=${encodeURIComponent(
     brand.whatsappPrefill
   )}`;
 

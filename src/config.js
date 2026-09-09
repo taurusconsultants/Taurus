@@ -44,9 +44,14 @@ export const brand = {
   description:
     'We backtest, optimise, visualise and deploy the trading strategies you specify — rigorously, by hand, with a full report at the end.',
 
-  // -- Contact  << PLACEHOLDER >> -------------------------------------------
-  // WhatsApp: international format, digits only, no + or spaces.
-  whatsappNumber: '9016451019',
+  // -- Contact --------------------------------------------------------------
+  // WhatsApp: FULL international format — country code + number, digits only,
+  // no +, no spaces. India = 91, US = 1.
+  //   +91 90164 51019  ->  '919016451019'   ✅ correct
+  //         9016451019  ->  '9016451019'     ❌ no country code, link dies
+  // Without the country code wa.me cannot resolve the account and every
+  // WhatsApp click fails silently. `npm run build` warns if this looks wrong.
+  whatsappNumber: '919016451019',
   whatsappDisplay: '+91 90164 51019',
   whatsappPrefill:
     "Hi — I have a trading strategy I'd like tested. Here's the idea:",

@@ -32,26 +32,26 @@ This file is the source of truth for project state, decisions, and constraints.
 - [x] Site built — Vite scaffold, WebGL hero, full sample report, form, disclaimer
 - [x] GitHub Pages preview pipeline (Actions, noindex, `.nojekyll`)
 
+- [x] Real contact details wired — WhatsApp number and email are live in
+      `src/config.js` (`brand.whatsappNumber`, `brand.whatsappDisplay`, `brand.email`)
+- [x] Web3Forms access key configured — the lead form now actually sends
+- [x] Brand mark designed (Taurus glyph) + PNG/JPG exports in `brand/`
+
 ### Pending
-- [ ] Project scaffold (Vite, directory structure, config/brand token file)
-- [ ] Page section/IA outline — what appears in what order
-- [ ] Copywriting pass (headline, subhead, service breakdown, trust/proof, CTA)
-- [ ] Visual identity (type scale, color, logo/wordmark treatment)
-- [ ] WebGL hero build + static fallback
-- [ ] Scroll motion pass (GSAP)
-- [ ] Dummy sample backtesting report — full-depth structure, placeholder numbers
-- [ ] Contact form + WhatsApp deep link
-- [ ] Disclaimer copy — written, reviewed, placed
-- [ ] Analytics + ad conversion tracking
-- [ ] Build + deploy to Hostinger
+- [ ] **Test the lead form end to end** — submit it once and confirm the email arrives
+- [ ] Analytics + ad conversion tracking (`analytics` in `src/config.js` is still empty)
+- [ ] Register the real domain, then update `brand.url` / `brand.domain`
+- [ ] Replace the dummy sample report with authentic, client-authorised results
+- [ ] Build + deploy to Hostinger (production) — Pages is preview only
+- [ ] Confirm legal entity name + jurisdiction (footer still says "Taurus Consultants
+      LLC · Delaware, United States" — a placeholder Claude invented)
 
 ### Open Questions (need user input)
-- **Domain name** — not yet provided. Needed for deploy and for canonical/OG tags.
-- **WhatsApp business number** — needed for the deep link. Placeholder until supplied.
-- **Destination email** for form submissions (Web3Forms delivers to an inbox).
-- **Logo / wordmark** — does one exist, or is it type-only for now?
-- **Real sample report** — user will supply later. Dummy in place until then.
-- **Legal entity name + jurisdiction** — needed for the footer and disclaimer wording.
+- **Domain name** — `taurusconsultants.com` is still a placeholder in config; canonical
+  and OG tags point there. Update the moment a real domain is registered.
+- **Legal entity name + jurisdiction** — footer and disclaimer currently use invented
+  values. These are legal text; they must be corrected before any paid traffic runs.
+- **Real sample report** — user will supply later. Full-depth dummy in place until then.
 
 ---
 
@@ -374,6 +374,19 @@ lives, how the sample report is rendered, asset pipeline, brand config location.
   so it cannot leak into the Hostinger production build and deindex the real site.
 - 2026-09-08: Added `.gitignore` (repo had none) excluding `node_modules/` and `dist/`;
   the Pages build produces `dist/` in CI rather than it being committed.
+- 2026-09-09: **Bug + guard — WhatsApp country code.** `brand.whatsappNumber` had been
+  entered as the local subscriber number with no country code, while `whatsappDisplay`
+  showed the `+91` form. That produces a `wa.me/<local-number>` link, which cannot
+  resolve an account: every WhatsApp click — the primary conversion path — would have
+  failed silently, with no error surfaced anywhere and no sign in analytics beyond
+  "the ads aren't converting". Fixed by prefixing the country code, and
+  `vite.config.js` now warns at build time if the number has fewer than 11 digits.
+  **`whatsappNumber` must always include the country code (India 91…, US 1…).**
+- 2026-09-09: Contact details and Web3Forms access key are now real, not placeholders.
+  The form is wired but has NOT been tested end to end — do that before running ads.
+- 2026-09-09: Brand assets exported to `brand/` (PNG/JPG lockups, mark, rounded icon),
+  generated from `brand.markSvg` so they cannot drift from the site. `brand/` is
+  gitignored — the SVG in `src/config.js` remains the single source of truth.
 - 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
   model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
   feature stability). Kept inside the hard positioning rule: we assess a client-supplied
