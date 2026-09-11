@@ -59,12 +59,12 @@ export const brand = {
   email: 'taurus.consultancyservice@gmail.com',
 
   // -- Domain  << PLACEHOLDER >> --------------------------------------------
-  domain: 'taurusconsultants.com',
-  url: 'https://taurusconsultants.com',
+  domain: 'taurusconsultancy.com',
+  url: 'https://taurusconsultancy.com',
 
   // -- Legal  << PLACEHOLDER >> ---------------------------------------------
-  legalEntity: 'Taurus Consultants LLC',
-  jurisdiction: 'Delaware, United States',
+  legalEntity: 'Taurus Consultancy LLC',
+  jurisdiction: 'GIFT City, India',
   yearFounded: 2026,
 };
 
