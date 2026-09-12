@@ -48,6 +48,85 @@ const std = (a) => {
   return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (a.length - 1));
 };
 
+/** Central moment of order k, normalised by the sample standard deviation. */
+function moment(a, k) {
+  const m = mean(a);
+  const s = std(a);
+  return mean(a.map((x) => ((x - m) / s) ** k));
+}
+
+/** Linear-interpolated quantile of an ALREADY-SORTED ascending array. */
+function quantile(sorted, p) {
+  const i = (sorted.length - 1) * p;
+  const lo = Math.floor(i);
+  const hi = Math.ceil(i);
+  return lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
+}
+
+/**
+ * Standard normal CDF — Abramowitz & Stegun 26.2.17. Accurate to ~7.5e-8,
+ * which is well inside what any figure on this report is quoted to.
+ */
+function normCdf(z) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989422804014327 * Math.exp((-z * z) / 2);
+  const p =
+    d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return z > 0 ? 1 - p : p;
+}
+
+/** Inverse standard normal CDF — Acklam's rational approximation. */
+function normInv(p) {
+  const a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.38357751867269e2, -3.066479806614716e1, 2.506628277459239];
+  const b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1];
+  const c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416];
+  const pl = 0.02425;
+  if (p < pl) {
+    const q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+      ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  if (p > 1 - pl) {
+    const q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+      ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  const q = p - 0.5;
+  const r = q * q;
+  return ((((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q) /
+    (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+
+/**
+ * Memoise a zero-argument computation.
+ *
+ * The Monte Carlo, CSCV and regime blocks together cost ~150ms — which is
+ * fine, but not on the boot path of a page paid traffic lands on. These are
+ * exposed as functions so the renderer can run them when the report section
+ * approaches the viewport, and each one runs at most once.
+ */
+function memo(fn) {
+  let done = false;
+  let value;
+  return () => {
+    if (!done) {
+      value = fn();
+      done = true;
+    }
+    return value;
+  };
+}
+
+/** Box–Muller draw from a supplied uniform PRNG. */
+function gaussFrom(rand) {
+  let u = 0,
+    v = 0;
+  while (u === 0) u = rand();
+  while (v === 0) v = rand();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
 /**
  * Regime edges are weighted to average ~0, so the strategy's edge comes from
  * the base R distribution alone. The negative stretches create genuine
@@ -239,6 +318,25 @@ export function generateReport(seed = SEED) {
     };
   };
 
+  // -- Distribution / tail statistics ---------------------------------------
+  // All computed from the same daily series the headline metrics use, so the
+  // risk panel can never disagree with the performance panel.
+  const sortedDaily = [...dailyReturns].sort((a, b) => a - b);
+  const var95 = quantile(sortedDaily, 0.05);
+  const tail = sortedDaily.filter((x) => x <= var95);
+  const cvar95 = mean(tail);
+  const upDays = dailyReturns.filter((x) => x > 0);
+  const downDays = dailyReturns.filter((x) => x < 0);
+  const omega =
+    upDays.reduce((s, x) => s + x, 0) / Math.abs(downDays.reduce((s, x) => s + x, 0));
+  // Ulcer index: RMS of the underwater curve. Penalises long shallow pain the
+  // way a single max-drawdown number never does.
+  const ulcer = Math.sqrt(mean(drawdown.map((p) => p.v * p.v)));
+  const sortedR = trades.map((t) => t.r).sort((a, b) => a - b);
+  const tailRatio = Math.abs(quantile(sortedR, 0.95) / quantile(sortedR, 0.05));
+  const skew = moment(dailyReturns, 3);
+  const kurtExcess = moment(dailyReturns, 4) - 3;
+
   const kpis = {
     cagr: +(cagr * 100).toFixed(1),
     sharpe: +((muD / sdD) * Math.sqrt(252)).toFixed(2),
@@ -265,6 +363,25 @@ export function generateReport(seed = SEED) {
       (monthly.filter((m) => m.ret > 0).length / monthly.length) * 100
     ).toFixed(0),
     startEquity: START_EQUITY,
+
+    // -- Risk & distribution -------------------------------------------------
+    omega: +omega.toFixed(2),
+    ulcer: +ulcer.toFixed(2),
+    // Ulcer performance index — excess return per unit of *sustained* pain.
+    upi: +((cagr * 100) / ulcer).toFixed(2),
+    recoveryFactor: +(((finalEquity - START_EQUITY) / START_EQUITY) * 100 / Math.abs(maxDD)).toFixed(2),
+    var95: +(var95 * 100).toFixed(2),
+    cvar95: +(cvar95 * 100).toFixed(2),
+    skew: +skew.toFixed(2),
+    kurtosis: +kurtExcess.toFixed(2),
+    tailRatio: +tailRatio.toFixed(2),
+    bestTrade: +Math.max(...sortedR).toFixed(2),
+    worstTrade: +Math.min(...sortedR).toFixed(2),
+    tradesPerMonth: +(trades.length / monthly.length).toFixed(1),
+    // Kept for the deflated-Sharpe calculation further down; not displayed.
+    dailySharpe: (muD / sdD),
+    dailyStd: sdD,
+    sessions: dailyReturns.length,
   };
 
   const meta = {
@@ -279,7 +396,7 @@ export function generateReport(seed = SEED) {
     outOfSample: segmentStats(splitIdx, equity.length),
   };
 
-  return { meta, kpis, equity, drawdown, monthly, yearly, distribution, trades };
+  return { meta, kpis, equity, drawdown, monthly, yearly, distribution, trades, dailyReturns };
 }
 
 const R = generateReport(SEED);
@@ -306,6 +423,318 @@ export const sensitivity = (() => {
   return out;
 })();
 
+/* ══════════════════════════════════════════════════════════════════════════
+   MONTE CARLO  —  bootstrap resampling of the realised trade sequence
+   ══════════════════════════════════════════════════════════════════════════
+   The single backtest equity curve is ONE path out of a very large number the
+   same edge could have produced. Reshuffling the realised trades (i.i.d.
+   bootstrap, same count, same sizing rule) answers the question a single
+   curve cannot: how much of this result was the edge, and how much was the
+   order the trades happened to arrive in?
+
+   Deliberately kept to 1,000 paths — enough for stable 5th/95th percentiles,
+   cheap enough not to cost anything visible at page load.
+   ────────────────────────────────────────────────────────────────────────── */
+const MC_PATHS = 1000;
+const MC_CHECKS = 60;
+// Moving-BLOCK bootstrap, not i.i.d. Resampling single trades destroys the
+// clustering that produces real drawdowns, and flatters the result badly —
+// every path comes back profitable and the tail looks far tamer than it is.
+// Blocks of ~25 consecutive trades keep the losing streaks intact.
+const MC_BLOCK = 25;
+
+export const getMonteCarlo = memo(() => {
+  const rnd = mulberry32(20260912);
+  const rs = R.trades.map((t) => t.r);
+  const n = rs.length;
+
+  // Checkpoints where every path is sampled, so the fan chart has a common x.
+  const checkAt = Array.from({ length: MC_CHECKS }, (_, i) =>
+    Math.floor(((i + 1) * n) / MC_CHECKS) - 1
+  );
+
+  const atCheck = Array.from({ length: MC_CHECKS }, () => []);
+  const finals = [];
+  const maxDDs = [];
+
+  for (let p = 0; p < MC_PATHS; p++) {
+    let cash = START_EQUITY;
+    let peak = START_EQUITY;
+    let dd = 0;
+    let ci = 0;
+    let i = 0;
+
+    while (i < n) {
+      const start = (rnd() * n) | 0;
+      const len = Math.min(MC_BLOCK, n - i);
+      for (let j = 0; j < len; j++, i++) {
+        cash += cash * RISK_PER_TRADE * rs[(start + j) % n];
+        if (cash > peak) peak = cash;
+        const d = ((cash - peak) / peak) * 100;
+        if (d < dd) dd = d;
+        if (ci < MC_CHECKS && i === checkAt[ci]) atCheck[ci++].push(cash);
+      }
+    }
+    finals.push(cash);
+    maxDDs.push(dd);
+  }
+
+  const PCTS = [0.05, 0.25, 0.5, 0.75, 0.95];
+  const bands = atCheck.map((col, i) => {
+    col.sort((a, b) => a - b);
+    return {
+      t: (checkAt[i] + 1) / n,
+      p: PCTS.map((q) => quantile(col, q)),
+    };
+  });
+
+  // The realised path, sampled at the SAME checkpoints, so it can be drawn
+  // inside the cone. Rebuilt from trade P&L rather than the daily equity
+  // series, so the x-axis is genuinely trade count and not an approximation.
+  let c = START_EQUITY;
+  const byTrade = R.trades.map((t) => (c += t.pnl));
+  const realisedPath = checkAt.map((i) => byTrade[i]);
+
+  const fs = [...finals].sort((a, b) => a - b);
+  const dd = [...maxDDs].sort((a, b) => a - b); // ascending → worst first
+  const ret = (v) => +(((v - START_EQUITY) / START_EQUITY) * 100).toFixed(1);
+  const share = (arr, fn) => +((arr.filter(fn).length / arr.length) * 100).toFixed(1);
+
+  return {
+    paths: MC_PATHS,
+    block: MC_BLOCK,
+    bands,
+    realisedPath,
+    percentiles: PCTS,
+    finalP5: ret(quantile(fs, 0.05)),
+    finalP25: ret(quantile(fs, 0.25)),
+    finalP50: ret(quantile(fs, 0.5)),
+    finalP75: ret(quantile(fs, 0.75)),
+    finalP95: ret(quantile(fs, 0.95)),
+    realised: R.kpis.totalReturn,
+    ddMedian: +quantile(dd, 0.5).toFixed(1),
+    ddP95: +quantile(dd, 0.05).toFixed(1), // the worst 5% of outcomes
+    ddRealised: R.kpis.maxDD,
+    probProfit: share(finals, (v) => v > START_EQUITY),
+    probDD20: share(maxDDs, (v) => v <= -20),
+    probDD30: share(maxDDs, (v) => v <= -30),
+    probHalved: share(maxDDs, (v) => v <= -50),
+  };
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ROBUSTNESS  —  is this an edge, or the best of N tries?
+   ══════════════════════════════════════════════════════════════════════════
+   Any parameter sweep produces a winner. The winner looks good BECAUSE it
+   won, not necessarily because it is real. Two standard corrections:
+
+     PSR — Probabilistic Sharpe Ratio (Bailey & López de Prado). The
+           probability the true Sharpe exceeds zero, correcting for track
+           length, skew and fat tails.
+     DSR — Deflated Sharpe Ratio. PSR with the benchmark raised to the Sharpe
+           you would EXPECT the best of N trials to show under no edge at all.
+     PBO — Probability of Backtest Overfitting, via Combinatorially Symmetric
+           Cross-Validation. Split the track into S blocks, take every way of
+           choosing half as in-sample, pick the in-sample winner, and see
+           where it lands out-of-sample. If the winner is a coin flip out of
+           sample, PBO tends to 50%.
+
+   The trial series below are synthesised to match each grid configuration's
+   Sharpe — consistent with the rest of this sample being synthetic. On a real
+   engagement CSCV runs on the actual per-configuration return series.
+   ────────────────────────────────────────────────────────────────────────── */
+const CSCV_SPLITS = 8;
+// Neighbouring configurations of the SAME strategy trade largely the same
+// signals, so their return series are strongly correlated. Generating them
+// independently is the common mistake: it makes the in-sample winner close to
+// random and pushes PBO toward 50% for strategies that are genuinely robust.
+const CSCV_RHO = 0.9;
+
+export const getRobustness = memo(() => {
+  const T = R.kpis.sessions;
+  const sd = R.kpis.dailyStd;
+  const srHat = R.kpis.dailySharpe;
+  const N = sensitivity.length;
+
+  // -- PSR / DSR ------------------------------------------------------------
+  const g3 = R.kpis.skew;
+  const g4 = R.kpis.kurtosis + 3; // non-excess kurtosis, as the formula wants
+  const denom = Math.sqrt(1 - g3 * srHat + ((g4 - 1) / 4) * srHat * srHat);
+  const psr = normCdf((srHat * Math.sqrt(T - 1)) / denom);
+
+  // Expected maximum Sharpe across N independent trials with no true edge.
+  const trialSr = sensitivity.map((c) => c.sharpe / Math.sqrt(252));
+  const vTrial = std(trialSr);
+  const EULER = 0.5772156649015329;
+  const sr0 =
+    vTrial * ((1 - EULER) * normInv(1 - 1 / N) + EULER * normInv(1 - 1 / (N * Math.E)));
+  const dsr = normCdf(((srHat - sr0) * Math.sqrt(T - 1)) / denom);
+
+  // -- PBO via CSCV ---------------------------------------------------------
+  // Per-configuration daily series, generated once, reduced immediately to
+  // per-block sums so the combination loop is O(1) per block rather than O(T).
+  const rnd = mulberry32(90210);
+  const blockLen = Math.floor(T / CSCV_SPLITS);
+
+  // One market-wide shock series shared by every configuration, plus an
+  // idiosyncratic component per configuration. rho controls how much of the
+  // variance is common.
+  const wc = Math.sqrt(CSCV_RHO);
+  const wi = Math.sqrt(1 - CSCV_RHO);
+  const common = Array.from({ length: CSCV_SPLITS * blockLen }, () => gaussFrom(rnd));
+
+  const blocks = sensitivity.map((cfg) => {
+    const mu = (cfg.sharpe / Math.sqrt(252)) * sd;
+    const bs = [];
+    for (let b = 0; b < CSCV_SPLITS; b++) {
+      let s = 0;
+      let ss = 0;
+      for (let i = 0; i < blockLen; i++) {
+        const x = mu + sd * (wc * common[b * blockLen + i] + wi * gaussFrom(rnd));
+        s += x;
+        ss += x * x;
+      }
+      bs.push({ s, ss });
+    }
+    return bs;
+  });
+
+  const sharpeOver = (bs, idx) => {
+    let s = 0;
+    let ss = 0;
+    const n = idx.length * blockLen;
+    idx.forEach((b) => {
+      s += bs[b].s;
+      ss += bs[b].ss;
+    });
+    const m = s / n;
+    return m / Math.sqrt(ss / n - m * m);
+  };
+
+  // Every way of splitting S blocks into equal in-sample / out-of-sample halves.
+  const combos = [];
+  (function choose(start, picked) {
+    if (picked.length === CSCV_SPLITS / 2) return combos.push(picked.slice());
+    for (let i = start; i < CSCV_SPLITS; i++) {
+      picked.push(i);
+      choose(i + 1, picked);
+      picked.pop();
+    }
+  })(0, []);
+
+  const logits = [];
+  combos.forEach((is) => {
+    const oos = [...Array(CSCV_SPLITS).keys()].filter((b) => !is.includes(b));
+    let best = 0;
+    let bestSr = -Infinity;
+    blocks.forEach((bs, k) => {
+      const sr = sharpeOver(bs, is);
+      if (sr > bestSr) {
+        bestSr = sr;
+        best = k;
+      }
+    });
+    const oosSr = blocks.map((bs) => sharpeOver(bs, oos));
+    const rank = oosSr.filter((x) => x <= oosSr[best]).length;
+    const w = rank / (N + 1);
+    logits.push(Math.log(w / (1 - w)));
+  });
+
+  const pbo = logits.filter((l) => l <= 0).length / logits.length;
+
+  return {
+    trials: N,
+    splits: CSCV_SPLITS,
+    combinations: combos.length,
+    psr: +(psr * 100).toFixed(1),
+    dsr: +(dsr * 100).toFixed(1),
+    pbo: +(pbo * 100).toFixed(1),
+    sr0: +(sr0 * Math.sqrt(252)).toFixed(2), // shown annualised, like every other Sharpe
+    sharpe: R.kpis.sharpe,
+    medianLogit: +quantile([...logits].sort((a, b) => a - b), 0.5).toFixed(2),
+  };
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REGIME ANALYSIS  —  k-means over rolling realised volatility
+   ══════════════════════════════════════════════════════════════════════════
+   A single Sharpe hides the question that actually matters at deployment
+   time: does this thing work everywhere, or does one regime carry it? Days
+   are clustered (k=3, 1-D k-means) on 20-session realised volatility, and
+   each cluster is scored independently.
+
+   Clustering on the strategy's OWN volatility, not on a market factor, is
+   stated plainly because it matters: this describes the conditions the
+   strategy itself experienced, not a macro regime call.
+   ────────────────────────────────────────────────────────────────────────── */
+const REGIME_WIN = 20;
+const REGIME_K = 3;
+
+export const getRegimes = memo(() => {
+  const rets = R.dailyReturns;
+  const vol = [];
+  for (let i = 0; i < rets.length; i++) {
+    const from = Math.max(0, i - REGIME_WIN + 1);
+    const w = rets.slice(from, i + 1);
+    vol.push(std(w.length > 2 ? w : rets.slice(0, 3)) * Math.sqrt(252) * 100);
+  }
+
+  // 1-D k-means, seeded at evenly spaced quantiles so the result is stable.
+  const sorted = [...vol].sort((a, b) => a - b);
+  let cents = [quantile(sorted, 1 / 6), quantile(sorted, 3 / 6), quantile(sorted, 5 / 6)];
+  let assign = new Array(vol.length).fill(0);
+
+  for (let it = 0; it < 40; it++) {
+    let moved = false;
+    vol.forEach((v, i) => {
+      let best = 0;
+      let bd = Infinity;
+      cents.forEach((c, k) => {
+        const d = Math.abs(v - c);
+        if (d < bd) {
+          bd = d;
+          best = k;
+        }
+      });
+      if (assign[i] !== best) {
+        assign[i] = best;
+        moved = true;
+      }
+    });
+    cents = cents.map((c, k) => {
+      const members = vol.filter((_, i) => assign[i] === k);
+      return members.length ? mean(members) : c;
+    });
+    if (!moved) break;
+  }
+
+  const order = cents.map((c, k) => ({ c, k })).sort((a, b) => a.c - b.c);
+  const LABELS = ['Low volatility', 'Normal', 'High volatility / stress'];
+  const totalPnl = R.trades.reduce((s, t) => s + t.pnl, 0);
+
+  return order.map((o, rank) => {
+    const idx = [];
+    assign.forEach((a, i) => a === o.k && idx.push(i));
+    const r = idx.map((i) => rets[i]);
+    // Days are indexed from equity[1], so equity index i+1 maps to return i.
+    const dates = new Set(idx.map((i) => R.equity[i + 1].d));
+    const tr = R.trades.filter((t) => dates.has(t.d));
+    const m = mean(r);
+    const s = std(r);
+    return {
+      label: LABELS[rank],
+      sessions: idx.length,
+      share: +((idx.length / rets.length) * 100).toFixed(1),
+      annVol: +(o.c).toFixed(1),
+      annRet: +((Math.pow(1 + m, 252) - 1) * 100).toFixed(1),
+      sharpe: +((m / s) * Math.sqrt(252)).toFixed(2),
+      worstDay: +(Math.min(...r) * 100).toFixed(2),
+      trades: tr.length,
+      pnlShare: +((tr.reduce((a, t) => a + t.pnl, 0) / totalPnl) * 100).toFixed(1),
+    };
+  });
+});
+
 export const assumptions = [
   { label: 'Starting capital', value: '$100,000' },
   { label: 'Commission', value: '$0.65 / contract / side' },
@@ -331,4 +760,7 @@ export default {
   lookbacks,
   thresholds,
   assumptions,
+  getMonteCarlo,
+  getRobustness,
+  getRegimes,
 };

@@ -13,9 +13,10 @@ This file is the source of truth for project state, decisions, and constraints.
 
 ## Current Status
 
-**Last updated:** 2026-09-08
+**Last updated:** 2026-09-12
 
-**Phase:** Decisions locked, scaffolding not yet started. Ready to build.
+**Phase:** Site built and restructured for conversion. Not yet live on production.
+Blockers before any paid traffic: untested lead form, no analytics.
 
 ### Done
 - [x] Business model, positioning, and legal constraints defined
@@ -37,21 +38,43 @@ This file is the source of truth for project state, decisions, and constraints.
 - [x] Web3Forms access key configured — the lead form now actually sends
 - [x] Brand mark designed (Taurus glyph) + PNG/JPG exports in `brand/`
 
+- [x] **Domain registered — `taurusconsultancy.com`.** `brand.url` / `brand.domain`
+      now point at it. (Earlier drafts of this file said `taurusconsultants.com`;
+      that was never registered and was wrong.)
+- [x] **Invented legal entity removed.** The footer no longer claims an LLC or a
+      jurisdiction. `brand.legalEntity` and `brand.jurisdiction` are gone from config.
+- [x] **Audience broadened to retail *and* enterprise** — individual traders,
+      systematic traders / small funds, and desks / prop firms / fund teams.
+- [x] **Page restructured pain-first** — hero mirrors the prospect's problem instead
+      of stating our capability; the sample report moved earlier in the scroll.
+- [x] **Report deepened** — risk & distribution KPIs, Monte Carlo, robustness
+      diagnostics (PSR / DSR / PBO-CSCV), regime analysis. See [Sample Report](#sample-report).
+- [x] **SEO infrastructure** — sitemap, robots, JSON-LD, OG image, manifest, icons,
+      404. See [SEO Infrastructure](#seo-infrastructure).
+- [x] **Cost objection handled** without stating a price (FAQ item 01).
+- [x] **Lead magnet shipped** — `/spec-template/`, ungated. See [Lead Magnet](#lead-magnet).
+- [x] Response-time promise tokenised as `brand.responseTime` ("within 24 hours").
+
 ### Pending
-- [ ] **Test the lead form end to end** — submit it once and confirm the email arrives
-- [ ] Analytics + ad conversion tracking (`analytics` in `src/config.js` is still empty)
-- [ ] Register the real domain, then update `brand.url` / `brand.domain`
-- [ ] Replace the dummy sample report with authentic, client-authorised results
-- [ ] Build + deploy to Hostinger (production) — Pages is preview only
-- [ ] Confirm legal entity name + jurisdiction (footer still says "Taurus Consultants
-      LLC · Delaware, United States" — a placeholder Claude invented)
+- [ ] **Test the lead form end to end** — submit it once and confirm the email arrives.
+      Still the single biggest launch blocker: untested + no analytics means we could
+      lose every form lead and never know.
+- [ ] **Analytics + ad conversion tracking** — `analytics` in `src/config.js` is still
+      empty. The event wiring already exists (`src/main.js`, `src/js/form.js`,
+      `src/spec.js`); it is dormant only because the IDs are blank.
+- [ ] **Move email off Gmail** to `hello@taurusconsultancy.com` once mail is set up.
+      A gmail.com address next to a premium page is a live credibility cost.
+- [ ] Point DNS at the host and build + deploy to Hostinger — Pages is preview only.
+- [ ] Replace the dummy sample report with authentic, client-authorised results.
+- [ ] **People / founder proof** — deliberately deferred by the user (2026-09-12).
+      Still the largest remaining trust gap: the page has no named human on it.
+- [ ] **Blog** — agreed in principle, scheduled for a later phase. The competitor's
+      only real moat is ~30k words of technical content; see [Competitive Position](#competitive-position).
 
 ### Open Questions (need user input)
-- **Domain name** — `taurusconsultants.com` is still a placeholder in config; canonical
-  and OG tags point there. Update the moment a real domain is registered.
-- **Legal entity name + jurisdiction** — footer and disclaimer currently use invented
-  values. These are legal text; they must be corrected before any paid traffic runs.
 - **Real sample report** — user will supply later. Full-depth dummy in place until then.
+- **Whether to ever name a legal entity.** Removed rather than invented. If one is
+  registered later it goes back in the footer; until then the page claims nothing.
 
 ---
 
@@ -113,8 +136,20 @@ suggestion about what to trade.
 
 ## Target Audience
 
-Traders who **already have a strategy idea** (even a rough one) and want it properly
-tested, optimized, or deployed, but lack the tooling or the time to do it rigorously.
+Anyone who trades **a rule they can write down** and wants it properly tested,
+optimized, or deployed, but lacks the tooling or the time to do it rigorously.
+
+Three segments, served by the same process at different scope and reporting depth
+(the page states this explicitly in the "Who this is for" section):
+
+| Segment | What they arrive with | What they want |
+|---|---|---|
+| **Individual traders** | A setup that works on the chart, and a suspicion it won't survive costs | An honest answer before they fund it |
+| **Systematic traders & small funds** | Running automated strategies already | More research throughput than one person can produce |
+| **Desks, prop firms & fund teams** | Infrastructure and people, no spare cycles | Scoped validation / overflow research capacity |
+
+> Supersedes the original "individual traders only" framing, broadened 2026-09-12.
+> Retail remains the majority of expected enquiries; enterprise is served, not chased.
 
 **Client geography:** majority **US**, with global reach.
 
@@ -243,6 +278,18 @@ npm run build:preview   # NOINDEX=1 — injects <meta name="robots" content="noi
 If noindex lived in `src/config.js`, it would travel with the build to Hostinger and
 deindex production. The Pages workflow sets `NOINDEX=1`; nothing else does.
 
+### Files that are generated, not committed
+
+`robots.txt`, `sitemap.xml` and `site.webmanifest` are **not in the repo** — they are
+emitted by the `brandTokens()` plugin during the build. Don't go looking for them in
+source, and don't add committed copies: they have to differ between the two targets
+(production invites crawlers, the Pages preview turns them away) and a committed file
+cannot do that. `dist/` is the only place they exist.
+
+`public/` *is* committed, and holds what genuinely is static: `og.png`, the PWA icons,
+`apple-touch-icon.png`, `404.html`, `.nojekyll`. Regenerate the images with
+`node scripts/make-images.mjs` after any change to the brand mark or the hero headline.
+
 ### GitHub Pages setup
 
 - Workflow: `.github/workflows/deploy.yml` — builds on push to `main`, deploys the
@@ -264,7 +311,11 @@ the real domain is registered**, or link previews and canonical tags point at no
 **The brand name is not final.** Never hardcode it.
 
 - Define brand strings in a **single config file** (name, tagline, WhatsApp number,
-  email, domain, social links).
+  email, domain, response time).
+- `brand.legalEntity` and `brand.jurisdiction` were **removed on 2026-09-12** — they
+  held values Claude invented. If a real entity is ever registered, add them back to
+  `src/config.js` and to the `tokens` map in `vite.config.js`, then put
+  `{{brand.legalEntity}}` back in the footer's `.footer-bottom`.
 - Reference the token everywhere — markup, `<title>`, OG tags, footer, form copy.
 - Changing the brand must be a **one-file edit**, then rebuild.
 - This applies to the logo/wordmark treatment too: keep it swappable, don't bake the
@@ -290,8 +341,112 @@ string in `src/config.js` (`brand.markSvg` + `brand.markViewBox`).
 
 ## Architecture
 
-*To be populated at scaffold time: directory layout, component inventory, where copy
-lives, how the sample report is rendered, asset pipeline, brand config location.*
+```
+index.html                  Landing page — all copy lives in the markup, with
+                            {{brand.*}} tokens substituted at build time
+spec-template/index.html    Lead magnet page (see below)
+public/                     Copied verbatim to dist/: og.png, icon-*.png,
+                            apple-touch-icon.png, 404.html, .nojekyll
+scripts/make-images.mjs     Regenerates the raster brand images from config
+src/
+  config.js                 SINGLE SOURCE OF TRUTH for brand, form, analytics,
+                            motion and report flags
+  main.js                   Landing-page entry (report → hero → motion → form)
+  spec.js                   Spec-template entry — CSS + clipboard/print only,
+                            deliberately does NOT pull in GSAP/Lenis/WebGL
+  js/hero.js                WebGL hero shader, with static CSS fallback
+  js/motion.js              GSAP ScrollTrigger reveals, counters, Lenis
+  js/form.js                Lead form; `validate()` exported for unit testing
+  js/report.js              Hand-rolled inline-SVG report renderer, no chart lib
+  data/report-data.js       Seeded synthetic dataset + all analytics maths
+  styles/main.css           One stylesheet, design tokens at the top
+vite.config.js              Token substitution, build guards, structured data,
+                            robots.txt / sitemap.xml / site.webmanifest emission,
+                            multi-page entry points (PAGES)
+```
+
+**Adding a page** means adding one row to `PAGES` in `vite.config.js`. That single
+list drives the Rollup entry points, `sitemap.xml`, and the per-page canonical URL —
+if they were maintained separately they would drift and we'd sitemap a 404.
+
+### Sample Report
+
+`src/data/report-data.js` generates everything from one seed and **computes** every
+KPI from the generated trade series, so no two figures in the report can disagree.
+
+Blocks, in page order: headline metrics · risk & distribution · equity curve ·
+underwater curve · IS/OOS · **Monte Carlo** · monthly heatmap · yearly table · trade
+distribution · **regime analysis** · parameter sensitivity · **robustness diagnostics**
+· assumptions · plain-English read.
+
+The three bold blocks were added 2026-09-12 and are genuinely computed, not typed in:
+
+- **Monte Carlo** — moving-**block** bootstrap (blocks of 25 trades), 1,000 paths.
+  Block, not i.i.d.: resampling single trades destroys the clustering that produces
+  real drawdowns and flatters the tail badly. Don't "simplify" it back.
+- **Robustness** — Probabilistic Sharpe, Deflated Sharpe (deflated against the
+  49-configuration trial count), and PBO via CSCV over 8 blocks / 70 symmetric splits.
+- **Regime analysis** — 1-D k-means (k=3) over 20-session realised volatility.
+
+`CSCV_RHO = 0.9` is load-bearing. The synthetic per-configuration trial series share a
+common factor because neighbouring settings of one strategy trade largely the same
+signals. Generating them independently is the common mistake and drives PBO to ~48%
+(a coin flip) even for a robust strategy. Current outputs: PSR >99.9%, DSR 97.3%,
+PBO 10.0%.
+
+**These three blocks render lazily** via `whenNear()` (IntersectionObserver, 900px
+margin) — together they cost ~80ms of arithmetic, which is fine to spend but not on
+the boot path of a page paid traffic lands on. Their containers reserve height in CSS
+(`.mc-box` aspect-ratio, `.mc-grid` / `.rob-grid` min-height) so deferring costs no
+layout shift. **Anything added inside `.mc-box` will push the chart out of its
+reserved box** — that's why the Monte Carlo legend has its own `#mcLegend` slot.
+
+### Lead Magnet
+
+`/spec-template/` — a ten-section strategy specification template.
+
+- **Ungated by design.** No email wall. With no named humans on the site yet, trading
+  a useful document for an email address costs more credibility than the address is
+  worth. It also earns a second indexable URL and pre-qualifies: anyone who fills it
+  in is serious.
+- Copy-to-clipboard (plain-text version lives in `src/spec.js`) and print-to-PDF via
+  the print stylesheet — no PDF tooling, nothing to keep in sync.
+- It is the same document step 2 of the process produces, so it can't drift from what
+  we'd actually ask for.
+
+### SEO Infrastructure
+
+| Artefact | Where it comes from |
+|---|---|
+| `sitemap.xml` | Emitted from `PAGES`. Production build only. |
+| `robots.txt` | Emitted. `Allow: /` + sitemap on production; `Disallow: /` on preview. |
+| `site.webmanifest` | Emitted from `brand.*` so a rename stays a one-file edit. |
+| JSON-LD | Injected per page: WebSite + Organization + WebPage, plus ProfessionalService + FAQPage on the landing page. Production build only. |
+| `og.png`, icons | `node scripts/make-images.mjs` — rasterised from `brand.markSvg` by headless Chrome. Committed under `public/`. |
+| `404.html` | `public/404.html`, deliberately self-contained. |
+
+**The FAQ schema is parsed out of the rendered markup**, not maintained as a second
+copy. A duplicated list is how FAQ rich results end up quoting answers the page no
+longer gives — Google treats the mismatch as a violation and drops the enhancement.
+
+**`og.png` must stay in sync with the H1.** A link preview promising different words
+from the page it opens reads as bait-and-switch. Change the hero headline → change
+`scripts/make-images.mjs` → re-run it.
+
+### Competitive Position
+
+Benchmarked against **referentiallabs.com** (2026-09-12). They are *not* a direct
+competitor — they sell an observability **platform** to mid-size quant teams; we sell
+**manual per-engagement work**. Worth keeping in view anyway:
+
+- **Where they beat us:** 20 indexed URLs against our 2, ~30,000 words of technical
+  blog content, a live GA4, and an explicit response-time promise. Their acquisition
+  is an owned channel; ours is 100% paid until the blog exists.
+- **Where we beat them:** we *show the deliverable*. Their platform page has zero
+  product screenshots — everything is described, nothing is demonstrated. Our full
+  sample report is the strongest asset either site has, and it is structurally hard
+  for them to copy.
+- **Where we're both weak:** neither site names a single human.
 
 ---
 
@@ -299,7 +454,14 @@ lives, how the sample report is rendered, asset pipeline, brand config location.
 
 - Never imply investment advice, trade recommendations, or expected returns.
 - Never present past backtest performance as an indicator of future results.
-- **Never mention price, rates, or that early work is free.**
+- **Never mention price, rates, or that early work is free.** Note the distinction
+  added 2026-09-12: *not stating a number* is required; *not addressing cost at all*
+  was costing contacts. The FAQ now answers "what does it cost?" with process — scope
+  and a fixed quote agreed in writing before anything starts, nothing billed until
+  approved — and no number, and no mention of the free pilot.
+- **Sell avoided loss, not gained profit.** The compliant argument is also the
+  stronger one: the value is not in us finding an edge, it's in stopping you trading
+  one that isn't there. Never phrase our value as improving returns or profitability.
 - Client owns the strategy idea; we own the rigor of the testing.
 - Speak to a competent trader, not a novice.
 - Market coverage framed as "anything tradable with available data," not a fixed list.
@@ -412,6 +574,64 @@ lives, how the sample report is rendered, asset pipeline, brand config location.
 - 2026-09-09: Brand assets exported to `brand/` (PNG/JPG lockups, mark, rounded icon),
   generated from `brand.markSvg` so they cannot drift from the site. `brand/` is
   gitignored — the SVG in `src/config.js` remains the single source of truth.
+- 2026-09-12: **Benchmarked against referentiallabs.com** and restructured off the
+  findings. Concluded they are an adjacent, not direct, competitor (platform-for-teams
+  vs. manual-work-for-anyone) so their positioning was deliberately *not* copied —
+  only three mechanics were: problem-first framing, answering the objections that
+  block contact, and building an owned channel.
+- 2026-09-12: **Hero rewritten pain-first** — "Great backtest. Then it went live."
+  replaces "Your strategy. Tested properly." A capability statement is accurate and
+  forgettable; a mirror of the reader's own experience creates urgency. Added a
+  section 01 naming the four failure modes, which is also the copy a blog would
+  later rank for.
+- 2026-09-12: **Primary CTA lowered from "Send your strategy" to "Tell us what you
+  trade."** Asking a stranger for their proprietary alpha on first contact is the
+  largest possible ask and adversely selects — whoever has a genuinely good edge
+  won't do it. The WhatsApp prefill was changed to match.
+- 2026-09-12: **Sample report moved earlier in the scroll** (section 04, was 06 after
+  the new sections were added). It is the strongest proof on the page and was sitting
+  below three sections of claims.
+- 2026-09-12: **Invented legal entity and jurisdiction removed** rather than replaced.
+  Claiming an LLC in a named jurisdiction is specific and verifiable; being wrong
+  about it on a page selling rigour is worse than saying nothing.
+- 2026-09-12: **Audience broadened to retail *and* enterprise.** Same process, scope
+  and reporting depth vary. A "who this is for / not for" block was added so readers
+  self-qualify — including an explicit "not for you if you want signals or tips",
+  which doubles as positioning-rule enforcement.
+- 2026-09-12: **Cost objection answered without a price.** See Copy Guidelines — the
+  pricing-silence rule is unchanged, but silence on *cost as a topic* was suppressing
+  contact, since a premium page that hides price reads as "expensive, don't bother".
+- 2026-09-12: **Report extended** with Monte Carlo, robustness diagnostics
+  (PSR/DSR/PBO-CSCV) and regime analysis, all genuinely computed. Chose a
+  moving-block bootstrap over i.i.d. after the i.i.d. version returned 100% of paths
+  profitable and a −22% worst-5% drawdown — flattering and methodologically wrong,
+  because resampling single trades destroys the clustering that creates real
+  drawdowns. Blocks of 25 give 99.6% / −26.2%.
+- 2026-09-12: **CSCV trial series are correlated (rho = 0.9), not independent.**
+  Independent series drove PBO to ~48% — a coin flip — for a strategy the rest of the
+  report shows is robust. Neighbouring parameter settings of one strategy trade
+  largely the same signals; modelling them as independent is the standard mistake.
+- 2026-09-12: **Deflated Sharpe is computed against 49 trials, not "millions."** The
+  page's million-combination capability claim lives in the Scale & Method section
+  instead. Deflating against a trial count that large correctly eats the entire edge,
+  which would have made our own showcase report conclude "indistinguishable from
+  luck". The two claims are about different things and are kept apart.
+- 2026-09-12: **Heavy report blocks render lazily** (IntersectionObserver). Module
+  boot went from 192ms to 60ms. Containers reserve height in CSS so there is no
+  layout shift and no ScrollTrigger invalidation.
+- 2026-09-12: **Full SEO infrastructure added**, generated rather than committed so
+  it can differ between the production and preview targets and can never drift from
+  `PAGES` or from `src/config.js`. FAQ structured data is parsed out of the markup
+  for the same reason.
+- 2026-09-12: **Lead magnet shipped ungated** at `/spec-template/`. An email wall
+  would trade a useful document for an address, and on a site with no named humans
+  that exchange costs more credibility than the address is worth.
+- 2026-09-12: **Site is now multi-page.** `PAGES` in `vite.config.js` is the single
+  list driving entry points, sitemap and canonicals. The spec page gets its own tiny
+  entry (`src/spec.js`) so it doesn't load the 68KB motion/WebGL bundle it has no use for.
+- 2026-09-12: **Response time promised explicitly** ("within 24 hours") as
+  `brand.responseTime`, surfaced in the hero, contact block, form and FAQ. Vagueness
+  ("we reply to every enquiry") reduces the cost of contacting by nothing.
 - 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
   model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
   feature stability). Kept inside the hard positioning rule: we assess a client-supplied

@@ -53,18 +53,25 @@ export const brand = {
   // WhatsApp click fails silently. `npm run build` warns if this looks wrong.
   whatsappNumber: '919016451019',
   whatsappDisplay: '+91 90164 51019',
+  // Deliberately a LOW-COMMITMENT opener. Asking a stranger to send their
+  // proprietary rules on first contact is the biggest possible ask, and it
+  // adversely selects: whoever has a genuinely good edge won't do it.
   whatsappPrefill:
-    "Hi — I have a trading strategy I'd like tested. Here's the idea:",
+    "Hi — I'd like a strategy tested. Here's what I trade and what I want answered:",
 
   email: 'taurus.consultancyservice@gmail.com',
 
-  // -- Domain  << PLACEHOLDER >> --------------------------------------------
+  // How fast enquiries get answered. Stated on the page in three places, so it
+  // lives here — change it once if the promise changes. Keep it a promise you
+  // can actually keep; a missed one is worse than a vague one.
+  responseTime: 'within 24 hours',
+
+  // -- Domain ---------------------------------------------------------------
+  // Registered 2026-09-12. Canonical, OG and sitemap URLs are all built from
+  // this, so it must stay absolute, https, and WITHOUT a trailing slash.
   domain: 'taurusconsultancy.com',
   url: 'https://taurusconsultancy.com',
 
-  // -- Legal  << PLACEHOLDER >> ---------------------------------------------
-  legalEntity: 'Taurus Consultancy LLC',
-  jurisdiction: 'GIFT City, India',
   yearFounded: 2026,
 };
 

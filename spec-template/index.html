@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Strategy Spec Template — {{brand.name}}</title>
+<meta name="description" content="A free one-page specification template for describing a trading strategy precisely enough to be backtested: entries, exits, sizing, filters, session rules, costs and edge cases. No email required." />
+
+<link rel="canonical" href="{{brand.url}}/spec-template/" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="{{brand.name}}" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="{{brand.url}}/spec-template/" />
+<meta property="og:title" content="Strategy Spec Template — {{brand.name}}" />
+<meta property="og:description" content="The ten things a backtest needs from you before it can mean anything. Fill it in, or use it as a checklist against your own rules." />
+<meta property="og:image" content="{{brand.url}}/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Strategy Spec Template — {{brand.name}}" />
+<meta name="twitter:description" content="The ten things a backtest needs from you before it can mean anything." />
+<meta name="twitter:image" content="{{brand.url}}/og.png" />
+<meta name="theme-color" content="#08090B" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="{{brand.faviconDataUri}}" />
+<link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+<link rel="manifest" href="../site.webmanifest" />
+</head>
+<body class="spec-page">
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header is-stuck">
+  <div class="shell header-inner">
+    <a class="wordmark" href="../" aria-label="{{brand.name}} home">
+      {{brand.mark}}
+      <span class="wordmark-text">{{brand.name}}</span>
+    </a>
+    <nav class="site-nav spec-nav" aria-label="Primary">
+      <a href="../#report">Sample report</a>
+      <a href="../#process">Process</a>
+      <a href="../#faq">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="btn btn-sm btn-primary" href="../#contact">Start a project</a>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="spec-main">
+  <div class="shell">
+
+    <header class="spec-head">
+      <p class="eyebrow">Free resource · no email required</p>
+      <h1 class="spec-title">The strategy spec template</h1>
+      <p class="spec-lede">
+        A backtest is only as meaningful as the specification behind it. Ten sections below —
+        answer them and your idea is testable. Leave one ambiguous and the result silently
+        depends on whatever the person coding it assumed.
+      </p>
+      <p class="spec-lede">
+        This is the same document we'd build with you in step 2 of an engagement. Fill it in
+        first and you get a faster, tighter scope back. Or ignore us entirely and use it as a
+        checklist against your own rules — that's a perfectly good outcome too.
+      </p>
+
+      <div class="spec-actions">
+        <button class="btn btn-primary" id="copyBtn" type="button">
+          <span class="btn-label">Copy blank template</span>
+        </button>
+        <button class="btn btn-ghost" id="printBtn" type="button">Print / save as PDF</button>
+        <a class="btn btn-ghost" href="../#contact">Send us a filled one</a>
+      </div>
+      <p class="spec-copied" id="copyStatus" role="status" aria-live="polite"></p>
+    </header>
+
+    <div class="spec-callout">
+      <strong>You do not need to fill this in before contacting us.</strong>
+      Plenty of engagements start with a paragraph and a screenshot. This exists because some
+      people would rather arrive prepared — and because reading it tends to surface the
+      decisions you hadn't made yet.
+    </div>
+
+    <ol class="spec-list">
+
+      <li class="spec-item">
+        <h2><span class="spec-n">01</span> What do you want answered?</h2>
+        <p class="spec-why">The single most skipped question, and the one that decides what the
+        report is even for. "Backtest my strategy" is not a question; it has no failing answer.</p>
+        <ul class="spec-q">
+          <li>What would make you trade this live?</li>
+          <li>What would make you abandon it?</li>
+          <li>Is there a specific doubt you're trying to settle — costs, curve-fit, a regime, a size limit?</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "I want to know whether this survives realistic
+        slippage at 5 lots, and whether the 2022 performance is the whole edge."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">02</span> Instrument, timeframe and history</h2>
+        <p class="spec-why">Determines whether the test is even possible. Clean history for some
+        instruments doesn't exist at any price, and it's better to know that on day one.</p>
+        <ul class="spec-q">
+          <li>Exact instrument(s) — symbol, exchange, contract or expiry convention</li>
+          <li>Bar interval, or tick / quote level</li>
+          <li>Period you want covered, and why that period</li>
+          <li>If options: which legs, strikes selected how, expiry selected how</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "NIFTY weekly options, 5-minute bars, 2019–2025.
+        Strikes: nearest OTM by delta at entry. Expiry: current week only."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">03</span> Entry rules</h2>
+        <p class="spec-why">The part everyone writes down, usually with one hidden ambiguity:
+        <em>when</em> the condition is evaluated versus when the order is placed.</p>
+        <ul class="spec-q">
+          <li>The precise condition, in terms of values available at that moment</li>
+          <li>Evaluated on bar close, or intrabar?</li>
+          <li>Order type — market on next open, limit at a level, stop entry?</li>
+          <li>What happens if the condition is still true on the following bar?</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "When the 15-min close exceeds the prior 20-bar high,
+        enter market on the next bar's open. Re-entry not allowed while a position is open."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">04</span> Exit rules</h2>
+        <p class="spec-why">Where most strategies actually make or lose their money, and where
+        specifications are usually thinnest. Every exit path needs a rule, including "none of
+        the above happened".</p>
+        <ul class="spec-q">
+          <li>Stop loss — fixed, ATR-based, structural? Moved how, and when?</li>
+          <li>Target — fixed R, level-based, trailing?</li>
+          <li>Time-based exit — end of day, end of session, after N bars?</li>
+          <li>If stop and target are hit within the same bar, which wins?</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "Stop: 1.5× ATR(14) below entry, never moved. Target:
+        3R. Time exit: 15:15 IST. Same-bar ambiguity: assume the stop fills first."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">05</span> Position sizing and risk</h2>
+        <p class="spec-why">Sizing changes the equity curve more than almost any entry tweak.
+        A strategy tested at fixed-one-lot and traded at percent-of-equity is a different
+        strategy.</p>
+        <ul class="spec-q">
+          <li>Fixed quantity, fixed risk per trade, percent of equity, or volatility-scaled?</li>
+          <li>Compounding, or sized off the starting balance?</li>
+          <li>Starting capital to assume</li>
+          <li>Maximum concurrent positions, and maximum exposure</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "0.75% of running equity risked per trade, compounding,
+        starting from $100,000. Maximum two concurrent positions."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">06</span> Filters and conditions</h2>
+        <p class="spec-why">Filters are where curve-fitting hides. Each one added after seeing
+        results costs you a degree of freedom — we'll test them, and we'll report how much of
+        the edge depends on each.</p>
+        <ul class="spec-q">
+          <li>Trend, volatility, volume or regime filters</li>
+          <li>Days, events or announcements to avoid</li>
+          <li>Correlation or portfolio-level constraints</li>
+          <li>For each: did you decide it before or after looking at results?</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "Only take entries when ADX(14) &gt; 20. Skip the two
+        sessions around scheduled policy announcements. The ADX filter was decided up front."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">07</span> Session and timing rules</h2>
+        <p class="spec-why">Intraday results move enormously on session handling — and the
+        first and last few minutes of a session behave nothing like the middle.</p>
+        <ul class="spec-q">
+          <li>Trading window — earliest entry, latest entry, forced flat time</li>
+          <li>Timezone, explicitly</li>
+          <li>Overnight positions allowed?</li>
+          <li>Behaviour on half-days, holidays and gaps</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "Entries 09:30–14:30 IST only. Flat by 15:15. No
+        overnight. Half-days: normal rules, forced flat 30 minutes before close."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">08</span> Costs and execution assumptions</h2>
+        <p class="spec-why">We'll model these by default, but your broker's numbers beat our
+        defaults. For thin-edge strategies this section alone can flip the sign of the result.</p>
+        <ul class="spec-q">
+          <li>Commission / brokerage structure</li>
+          <li>Taxes, exchange and regulatory charges where they apply</li>
+          <li>Expected slippage, or let us estimate it from spread and size</li>
+          <li>Typical order size relative to available liquidity</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "₹20 per order per side, plus STT and exchange
+        charges. Assume 1 tick of slippage each way. Typical size: 10 lots."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">09</span> Edge cases you haven't decided yet</h2>
+        <p class="spec-why">Be honest here — this section is the most useful one you can write.
+        Anything you leave blank becomes an assumption somebody else makes on your behalf.</p>
+        <ul class="spec-q">
+          <li>Signal fires while already in a position — add, ignore, or reverse?</li>
+          <li>Gap straight through the stop — fill at the gap, or at the stop price?</li>
+          <li>Missing bars, halted trading, limit-up/down</li>
+          <li>Contract roll or expiry while a position is open</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "Not decided — please test both 'ignore' and 'reverse'
+        and show me the difference."</p>
+      </li>
+
+      <li class="spec-item">
+        <h2><span class="spec-n">10</span> Metrics you care about</h2>
+        <p class="spec-why">The standard report covers the usual set. If there's a number your
+        decision actually turns on, name it now so it's measured rather than reconstructed.</p>
+        <ul class="spec-q">
+          <li>Any custom KPI, exposure breakdown or risk measure</li>
+          <li>Breakdowns you want — by regime, session, day of week, instrument</li>
+          <li>A benchmark to compare against, if there is one</li>
+        </ul>
+        <p class="spec-eg"><b>Example</b> "Add per-expiry-day breakdown, and worst 20-day rolling
+        return. Benchmark against buy-and-hold on the underlying."</p>
+      </li>
+
+    </ol>
+
+    <section class="spec-cta">
+      <h2>Filled it in?</h2>
+      <p>
+        Send it over and you'll get back what we'd need, what we'd do, and how long it takes —
+        {{brand.responseTime}}. If you'd rather not share the rules yet, send section 01 and 02
+        alone; that's enough for us to tell you whether the data exists and what testing it
+        would involve.
+      </p>
+      <div class="spec-actions">
+        <a class="btn btn-primary" href="{{brand.whatsappLink}}" target="_blank" rel="noopener" data-track="whatsapp-spec">
+          Send it on WhatsApp
+        </a>
+        <a class="btn btn-ghost" href="../#contact">Use the form instead</a>
+      </div>
+      <p class="spec-fine">
+        We'll sign an NDA before you send anything, if you want one on file. Your idea is never
+        traded, resold, or reused for another client.
+      </p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-top">
+      <div class="footer-brand">
+        {{brand.mark}}
+        <span class="wordmark-text">{{brand.name}}</span>
+        <p>{{brand.tagline}}</p>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="../">Home</a>
+        <a href="../#report">Sample report</a>
+        <a href="../#process">Process</a>
+        <a href="../#faq">FAQ</a>
+        <a href="../#contact">Contact</a>
+      </nav>
+    </div>
+
+    <div class="disclaimer">
+      <h2>Important disclaimer</h2>
+      <p>
+        <strong>{{brand.name}}</strong> provides strategy <strong>testing and reporting</strong>
+        services only. We test and report on strategies specified by the client. We do not
+        provide investment advice, portfolio management, or trade recommendations. Nothing on
+        this website constitutes a recommendation to buy, sell or hold any financial instrument.
+        Trading involves substantial risk of loss, including loss of principal.
+      </p>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© {{site.year}} {{brand.name}}</p>
+      <p><a href="mailto:{{brand.email}}">{{brand.email}}</a></p>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/src/spec.js"></script>
+</body>
+</html>

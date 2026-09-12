@@ -228,7 +228,9 @@ button, input, textarea { font: inherit; color: inherit; }
 .hero-inner { position: relative; }
 
 .hero-title {
-  font-size: clamp(3rem, 10.2vw, 8.4rem);
+  /* Sized so the longest line ("Then it went live.") fits on ONE row at every
+     width — from a 390px phone up to the 1200px shell. */
+  font-size: clamp(2.3rem, 9.4vw, 7.4rem);
   font-weight: 700;
   line-height: 0.93;
   letter-spacing: -0.05em;
@@ -313,6 +315,41 @@ button, input, textarea { font: inherit; color: inherit; }
 .card-quiet { background: transparent; border-style: dashed; }
 .card-quiet .card-num { color: var(--text-muted); }
 .card-note { margin-top: 14px; color: var(--text-muted) !important; font-size: 13.5px !important; font-style: italic; }
+
+/* Failure-mode cards (section 01). Same shape as a service card, but the
+   index is tinted with the negative colour so the two sections don't read as
+   the same list twice. */
+.card-fail .card-num { color: var(--neg); }
+.card-fail .card-list li::before { color: var(--neg); }
+.card p em { color: var(--text); font-style: italic; }
+
+/* ==========================================================================
+   WHO IT'S FOR
+   ========================================================================== */
+.who-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; }
+.who {
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: var(--radius); padding: 32px 28px 28px;
+  transition: border-color .35s, transform .45s var(--ease);
+}
+.who:hover { border-color: var(--hairline-2); transform: translateY(-4px); }
+.who h3 { font-size: 1.24rem; font-weight: 600; letter-spacing: -0.025em; margin-bottom: 12px; }
+.who h3::before { content: ''; display: block; width: 26px; height: 2px; background: var(--accent); margin-bottom: 16px; }
+.who p { color: var(--text-2); font-size: 15px; line-height: 1.62; }
+
+/* ==========================================================================
+   SCALE & METHOD
+   ========================================================================== */
+.scale-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); border-radius: var(--radius); overflow: hidden; }
+.scale { background: var(--bg); padding: 34px 30px; transition: background-color .35s; }
+.scale:hover { background: var(--surface); }
+.scale-n {
+  display: block; font-family: var(--mono); font-weight: 500;
+  font-size: clamp(1.9rem, 3.4vw, 2.5rem); line-height: 1;
+  color: var(--accent); letter-spacing: -0.04em; margin-bottom: 18px;
+}
+.scale h3 { font-size: 1.04rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 11px; }
+.scale p { color: var(--text-2); font-size: 14.5px; line-height: 1.62; }
 
 /* ==========================================================================
    PROCESS
@@ -433,6 +470,42 @@ button, input, textarea { font: inherit; color: inherit; }
 .oos-row span { color: var(--text-muted); font-size: 13px; }
 .oos-row b { font-weight: 600; font-family: var(--mono); letter-spacing: -0.02em; }
 
+/* Monte Carlo + robustness + regimes.
+   These three blocks are rendered LAZILY (see whenNear() in js/report.js), so
+   each container reserves its own height up front. Without that the page
+   reflows as you scroll into it, which both looks broken and invalidates
+   every ScrollTrigger position below. */
+/* aspect-ratio matches the SVG viewBox exactly, so the reserved box and the
+   chart that lands in it are the same height — no gap, no jump. */
+.mc-box { aspect-ratio: 1000 / 330; }
+
+.mc-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px; background: var(--hairline); border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm); overflow: hidden; margin-top: 26px;
+  min-height: 176px;
+}
+.mc-stat { background: var(--surface-2); padding: 16px 17px 15px; }
+.mc-k { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 9px; line-height: 1.45; }
+.mc-v { font-size: 1.32rem; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.mc-v.neg { color: var(--neg); }
+.mc-s { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+.rob-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1px; background: var(--hairline); border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm); overflow: hidden; min-height: 260px;
+}
+.rob-card { background: var(--surface-2); padding: 22px 20px; }
+.rob-k { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted); margin-bottom: 12px; }
+.rob-v { font-size: clamp(1.7rem, 3vw, 2.1rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1; margin-bottom: 14px; font-variant-numeric: tabular-nums; }
+.rob-v.pos { color: var(--pos); }
+.rob-v.neg { color: var(--neg); }
+.rob-d { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+.reg-table { min-width: 720px; }
+#regimeTable:empty { min-height: 170px; }
+
 /* Heatmaps */
 .heat-box { overflow-x: auto; padding-bottom: 4px; }
 .heat { display: grid; gap: 2px; min-width: 640px; }
@@ -523,9 +596,27 @@ button, input, textarea { font: inherit; color: inherit; }
    ========================================================================== */
 .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(36px, 5vw, 74px); align-items: start; }
 
+/* The three objections that stop a stranger sending you their edge, answered
+   before the form rather than 80% down the page in an FAQ. */
+.trust-points {
+  list-style: none; padding: 0; margin-top: 32px;
+  display: grid; gap: 11px;
+  font-size: 14px; color: var(--text-2);
+}
+.trust-points li { display: flex; align-items: flex-start; gap: 11px; line-height: 1.5; }
+.trust-points li::before {
+  content: '✓'; flex: none;
+  width: 19px; height: 19px; margin-top: 1px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: rgba(198,242,78,0.12);
+  color: var(--accent);
+  font-size: 11px; line-height: 1;
+}
+
 .wa-card {
   display: flex; align-items: center; gap: 17px;
-  margin-top: 42px; padding: 20px 22px;
+  margin-top: 34px; padding: 20px 22px;
   border: 1px solid var(--hairline-2); border-radius: var(--radius);
   background: var(--surface);
   transition: border-color .3s, background-color .3s, transform .35s var(--ease);
@@ -607,6 +698,69 @@ button, input, textarea { font: inherit; color: inherit; }
 .footer-bottom a:hover { color: var(--accent); }
 
 /* ==========================================================================
+   SPEC TEMPLATE PAGE
+   A document, not a landing page: no hero, no motion, no shader. It loads its
+   own tiny entry (src/spec.js) rather than the main bundle.
+   ========================================================================== */
+.spec-main { padding-block: 140px var(--sp-section); }
+.spec-head { max-width: 74ch; }
+.spec-title {
+  font-size: clamp(2.3rem, 6vw, 4rem); font-weight: 700;
+  line-height: 1.02; letter-spacing: -0.045em; margin-bottom: 26px;
+}
+.spec-lede { font-size: clamp(1rem, 1.6vw, 1.16rem); color: var(--text-2); line-height: 1.66; margin-bottom: 16px; }
+
+.spec-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.spec-copied { margin-top: 14px; font-size: 13.5px; min-height: 20px; }
+.spec-copied.ok { color: var(--accent); }
+.spec-copied.bad { color: var(--neg); }
+
+.spec-callout {
+  margin-top: 54px; padding: 20px 22px;
+  border: 1px solid var(--hairline-2); border-left: 2px solid var(--accent);
+  border-radius: var(--radius-sm); background: var(--surface);
+  font-size: 14.5px; color: var(--text-2); line-height: 1.62; max-width: 82ch;
+}
+.spec-callout strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+.spec-list { list-style: none; padding: 0; margin-top: 26px; }
+.spec-item { padding-block: 38px; border-top: 1px solid var(--hairline); }
+.spec-item:last-child { border-bottom: 1px solid var(--hairline); }
+.spec-item h2 {
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem); font-weight: 600;
+  letter-spacing: -0.03em; margin-bottom: 14px;
+  display: flex; align-items: baseline; gap: 16px;
+}
+.spec-n { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 0.06em; flex: none; }
+.spec-why { color: var(--text-2); font-size: 15px; line-height: 1.65; max-width: 76ch; }
+.spec-why em { color: var(--text); font-style: italic; }
+
+.spec-q { list-style: none; padding: 0; margin: 20px 0 0; max-width: 76ch; }
+.spec-q li {
+  position: relative; padding-left: 20px; margin-bottom: 9px;
+  font-size: 14.5px; color: var(--text); line-height: 1.55;
+}
+.spec-q li::before { content: '›'; position: absolute; left: 0; color: var(--accent); }
+
+.spec-eg {
+  margin-top: 20px; padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  font-family: var(--mono); font-size: 12.8px; line-height: 1.6;
+  color: var(--text-2); max-width: 76ch;
+}
+.spec-eg b { color: var(--text-muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.1em; font-size: 10.5px; display: block; margin-bottom: 6px; }
+
+.spec-cta {
+  margin-top: 70px; padding: clamp(28px, 4vw, 46px);
+  border: 1px solid var(--hairline); border-radius: var(--radius);
+  background: var(--surface);
+}
+.spec-cta h2 { font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 700; letter-spacing: -0.035em; margin-bottom: 16px; }
+.spec-cta p { color: var(--text-2); font-size: 15.5px; line-height: 1.65; max-width: 68ch; }
+.spec-fine { margin-top: 24px; font-size: 12.8px; color: var(--text-muted); line-height: 1.6; }
+
+/* ==========================================================================
    MOTION — hidden only once JS confirms it can animate them back in
    ========================================================================== */
 html.motion-ready .reveal { opacity: 0; transform: translateY(26px); }
@@ -632,12 +786,20 @@ html.motion-ready .hero-title .line-i { transform: translateY(105%); }
   .header-actions .btn { display: none; }
 }
 
+@media (max-width: 900px) {
+  /* The spec page's own nav links would crowd the mobile drawer for no gain —
+     the header CTA and the footer both still lead everywhere useful. */
+  .spec-nav { display: none; }
+}
+
 @media (max-width: 620px) {
   .step { grid-template-columns: 1fr; gap: 12px; }
   .report-meta { grid-template-columns: 1fr; }
   .report-head { flex-direction: column; }
   .hero-points { flex-direction: column; gap: 10px; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid, .mc-grid { grid-template-columns: repeat(2, 1fr); }
+  .spec-item h2 { flex-direction: column; gap: 8px; }
+  .spec-main { padding-block: 110px var(--sp-section); }
 }
 
 /* ==========================================================================
@@ -660,8 +822,16 @@ html.motion-ready .hero-title .line-i { transform: translateY(105%); }
    PRINT — the report should survive being saved as PDF
    ========================================================================== */
 @media print {
-  .site-header, .hero, .strip, .scroll-cue, .form-wrap, .wa-card, .nav-toggle { display: none !important; }
+  .site-header, .hero, .strip, .scroll-cue, .form-wrap, .wa-card, .nav-toggle,
+  .spec-actions, .spec-copied, .footer-nav { display: none !important; }
   body { background: #fff; color: #000; }
-  .report { border-color: #ccc; background: #fff; }
+  .report, .spec-cta, .spec-eg, .spec-callout, .who { border-color: #ccc; background: #fff; }
   .reveal { opacity: 1 !important; transform: none !important; }
+
+  /* The spec template is meant to be printed and written on — give each
+     section room to breathe and stop them splitting across pages. */
+  .spec-main { padding-block: 0; }
+  .spec-item { break-inside: avoid; padding-block: 22px; }
+  .spec-why, .spec-q li, .spec-eg, .spec-lede { color: #333; }
+  .spec-n, .spec-q li::before { color: #666; }
 }

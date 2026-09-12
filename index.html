@@ -6,18 +6,29 @@
 <title>{{brand.name}} — {{brand.tagline}}</title>
 <meta name="description" content="{{brand.description}}" />
 
-<link rel="canonical" href="{{brand.url}}" />
+<link rel="canonical" href="{{brand.url}}/" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="{{brand.url}}" />
+<meta property="og:site_name" content="{{brand.name}}" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="{{brand.url}}/" />
 <meta property="og:title" content="{{brand.name}} — {{brand.tagline}}" />
 <meta property="og:description" content="{{brand.description}}" />
+<meta property="og:image" content="{{brand.url}}/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="{{brand.name}} — {{brand.tagline}}" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{brand.name}} — {{brand.tagline}}" />
+<meta name="twitter:description" content="{{brand.description}}" />
+<meta name="twitter:image" content="{{brand.url}}/og.png" />
 <meta name="theme-color" content="#08090B" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="icon" href="{{brand.faviconDataUri}}" />
+<link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+<link rel="manifest" href="./site.webmanifest" />
 </head>
 <body>
 
@@ -32,10 +43,11 @@
     </a>
 
     <nav class="site-nav" id="siteNav" aria-label="Primary">
+      <a href="#who">Who it's for</a>
       <a href="#services">Services</a>
-      <a href="#process">Process</a>
       <a href="#report">Sample report</a>
-      <a href="#approach">Approach</a>
+      <a href="#process">Process</a>
+      <a href="./spec-template/">Spec template</a>
       <a href="#faq">FAQ</a>
     </nav>
 
@@ -57,30 +69,35 @@
   <div class="hero-veil" aria-hidden="true"></div>
 
   <div class="shell hero-inner">
-    <p class="eyebrow reveal">Quantitative strategy testing</p>
+    <p class="eyebrow reveal">Strategy testing &amp; validation</p>
 
+    <!-- Two lines, and they must STAY two lines. The reveal masks each line
+         separately (.line has overflow:hidden), so a wrap turns one mask into
+         a two-row mask and the rhythm falls apart. If you change this copy,
+         check it against the clamp in .hero-title at 1440px and at 390px. -->
     <h1 class="hero-title">
-      <span class="line"><span class="line-i">Your strategy.</span></span>
-      <span class="line"><span class="line-i accent">Tested properly.</span></span>
+      <span class="line"><span class="line-i">Great backtest.</span></span>
+      <span class="line"><span class="line-i accent">Then it went live.</span></span>
     </h1>
 
     <p class="hero-lede reveal">
-      You bring the rules. We backtest, optimise, visualise and deploy them — by hand,
-      with a full report at the end. We don't sell signals, and we don't tell you what to trade.
+      That gap is almost never bad luck. It's costs that were never modelled, a fill that
+      can't happen, a look-ahead nobody caught, or an edge fitted to noise. We find out
+      which one it is — on the strategy you specify, before your capital does.
     </p>
 
     <div class="hero-cta reveal">
       <a class="btn btn-primary" href="{{brand.whatsappLink}}" target="_blank" rel="noopener" data-track="whatsapp-hero">
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm5.8 14.16c-.24.68-1.42 1.3-1.95 1.34-.5.05-1.13.07-1.83-.11-.42-.11-.96-.29-1.66-.59-2.92-1.26-4.82-4.2-4.97-4.4-.14-.2-1.19-1.58-1.19-3.02 0-1.43.75-2.14 1.02-2.43.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.59.83 2.02.9 2.17.07.14.12.31.02.51-.1.2-.15.31-.29.48-.14.16-.3.37-.43.49-.14.14-.29.3-.13.58.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.42.29.14.46.12.63-.07.17-.2.72-.84.92-1.13.19-.29.39-.24.65-.14.27.09 1.7.8 1.99.95.29.14.48.22.55.34.07.12.07.7-.17 1.38Z"/></svg>
-        Send your strategy
+        Tell us what you trade
       </a>
       <a class="btn btn-ghost" href="#report">See a full sample report</a>
     </div>
 
     <ul class="hero-points reveal">
-      <li>You specify the rules — we test exactly those</li>
-      <li>Costs, slippage and out-of-sample included by default</li>
-      <li>Delivered to an agreed deadline</li>
+      <li>You don't have to send your rules to start the conversation</li>
+      <li>Costs, slippage and out-of-sample in every result</li>
+      <li>Reply {{brand.responseTime}} · NDA on request</li>
     </ul>
   </div>
 
@@ -93,16 +110,140 @@
     <div class="marquee-track">
       <span>Backtesting</span><i>◆</i><span>Optimisation</span><i>◆</i><span>Signal visualisation</span><i>◆</i>
       <span>Algo deployment</span><i>◆</i><span>Idea refinement</span><i>◆</i><span>Model evaluation</span><i>◆</i>
-      <span>Walk-forward analysis</span><i>◆</i><span>Custom KPIs</span><i>◆</i>
+      <span>Walk-forward analysis</span><i>◆</i><span>Monte Carlo</span><i>◆</i><span>Overfit detection</span><i>◆</i>
+      <span>Custom KPIs</span><i>◆</i>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════ SERVICES ══════════════════════════ -->
+<!-- ══════════════════════════ 01 · THE PROBLEM ══════════════════════════ -->
+<section class="section" id="problem">
+  <div class="shell">
+    <header class="section-head">
+      <p class="eyebrow reveal">01 — The problem</p>
+      <h2 class="section-title reveal">Four ways a good-looking backtest lies.</h2>
+      <p class="section-lede reveal">
+        None of these show up as an error. They show up as a curve that goes up and to the
+        right, and then doesn't. Every engagement we run is, in the end, a hunt for these four.
+      </p>
+    </header>
+
+    <div class="cards">
+      <article class="card card-fail reveal">
+        <span class="card-num">01</span>
+        <h3>Information you didn't have yet</h3>
+        <p>A signal computed on the bar it trades, an indicator that quietly peeks at the close,
+        a universe built from today's index membership. Look-ahead and survivorship don't
+        exaggerate an edge — they invent one.</p>
+        <ul class="card-list">
+          <li>Signals lagged a full bar, always</li>
+          <li>Point-in-time universes only</li>
+          <li>Corporate actions applied as-of</li>
+        </ul>
+      </article>
+
+      <article class="card card-fail reveal">
+        <span class="card-num">02</span>
+        <h3>Fills that can't happen</h3>
+        <p>Same-bar entry at the exact price, no commission, no slippage, unlimited size at the
+        touch. Thin edges live or die here: a strategy at 0.1R expectancy is one tick of
+        slippage away from being a losing system.</p>
+        <ul class="card-list">
+          <li>Next-bar fills, never same-bar</li>
+          <li>Commission and slippage modelled</li>
+          <li>Liquidity sanity-checked per instrument</li>
+        </ul>
+      </article>
+
+      <article class="card card-fail reveal">
+        <span class="card-num">03</span>
+        <h3>The best of a thousand tries</h3>
+        <p>Sweep enough parameters and something always looks brilliant. The winner looks good
+        <em>because</em> it won, not because it works. Without deflating for how many
+        configurations were tried, a backtest is a lottery result.</p>
+        <ul class="card-list">
+          <li>Deflated Sharpe against trial count</li>
+          <li>CSCV overfit probability reported</li>
+          <li>Whole parameter surface shown</li>
+        </ul>
+      </article>
+
+      <article class="card card-fail reveal">
+        <span class="card-num">04</span>
+        <h3>One path out of thousands</h3>
+        <p>An equity curve is a single ordering of your trades. Reshuffle them and the drawdown
+        you'd actually have lived through may be twice as deep. Sizing off the curve that
+        happened is how accounts get closed in month four.</p>
+        <ul class="card-list">
+          <li>Block-bootstrap Monte Carlo</li>
+          <li>Drawdown distribution, not one number</li>
+          <li>Tail outcomes stated explicitly</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ 02 · WHO IT'S FOR ══════════════════════════ -->
+<section class="section section-alt" id="who">
+  <div class="shell">
+    <header class="section-head">
+      <p class="eyebrow reveal">02 — Who this is for</p>
+      <h2 class="section-title reveal">Anyone who trades a rule they can write down.</h2>
+      <p class="section-lede reveal">
+        From one trader with an idea to a desk that needs overflow research capacity. The
+        process is the same; the scope and the reporting depth change.
+      </p>
+    </header>
+
+    <div class="who-grid">
+      <article class="who reveal">
+        <h3>Individual traders</h3>
+        <p>You've got a setup that works on the chart and a suspicion it won't survive costs.
+        You want an answer before you fund it, not after.</p>
+        <ul class="card-list">
+          <li>Discretionary rules made testable</li>
+          <li>TradingView / Pine scripts validated</li>
+          <li>"Is this real?" answered honestly</li>
+        </ul>
+      </article>
+
+      <article class="who reveal">
+        <h3>Systematic traders &amp; small funds</h3>
+        <p>You already run automated strategies and need more research throughput than one
+        person can produce — sweeps, walk-forwards, and a second set of eyes on the method.</p>
+        <ul class="card-list">
+          <li>Large parameter and instrument sweeps</li>
+          <li>Walk-forward and regime analysis</li>
+          <li>Independent review before capital moves</li>
+        </ul>
+      </article>
+
+      <article class="who reveal">
+        <h3>Desks, prop firms &amp; fund teams</h3>
+        <p>You have the infrastructure and the people; what you don't have is spare cycles.
+        We run scoped research and validation work alongside your team and hand back
+        reproducible output.</p>
+        <ul class="card-list">
+          <li>Model validation before deployment</li>
+          <li>Cross-instrument robustness studies</li>
+          <li>Documented, reproducible methodology</li>
+        </ul>
+      </article>
+    </div>
+
+    <p class="process-foot reveal">
+      Not for you if you're looking for signals, tips, managed money, or someone to tell you
+      what to trade. We don't do any of that — see the disclaimer at the foot of this page.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════ 03 · SERVICES ══════════════════════════ -->
 <section class="section" id="services">
   <div class="shell">
     <header class="section-head">
-      <p class="eyebrow reveal">01 — What we do</p>
+      <p class="eyebrow reveal">03 — What we do</p>
       <h2 class="section-title reveal">Six things, done by hand.</h2>
       <p class="section-lede reveal">
         No dashboard to learn, no template to fill in. A person reads your idea,
@@ -194,92 +335,16 @@
   </div>
 </section>
 
-<!-- ══════════════════════════ PROCESS ══════════════════════════ -->
-<section class="section section-alt" id="process">
-  <div class="shell">
-    <header class="section-head">
-      <p class="eyebrow reveal">02 — How it works</p>
-      <h2 class="section-title reveal">From rough idea to signed-off report.</h2>
-    </header>
-
-    <ol class="steps">
-      <li class="step reveal">
-        <span class="step-n">1</span>
-        <div>
-          <h3>Send the idea</h3>
-          <p>Rough is fine. A paragraph, a screenshot, a TradingView script, or a set of rules
-          scribbled down. If it's incomplete, we'll tell you exactly what's missing.</p>
-        </div>
-      </li>
-      <li class="step reveal">
-        <span class="step-n">2</span>
-        <div>
-          <h3>We write the spec</h3>
-          <p>Your idea becomes an unambiguous written specification — entries, exits, filters,
-          sizing, session rules, edge cases. Nothing gets coded until you approve it.</p>
-        </div>
-      </li>
-      <li class="step reveal">
-        <span class="step-n">3</span>
-        <div>
-          <h3>We test it</h3>
-          <p>Coded to spec and run over clean data with costs and slippage. Out-of-sample held
-          back. Parameter sensitivity mapped so you can see whether the edge is real or fragile.</p>
-        </div>
-      </li>
-      <li class="step reveal">
-        <span class="step-n">4</span>
-        <div>
-          <h3>You get the report</h3>
-          <p>Standard KPIs plus any custom metric you ask for, the full assumption list, and a
-          plain-English read on what held up and what didn't — including when the answer is
-          "this doesn't work".</p>
-        </div>
-      </li>
-    </ol>
-
-    <p class="process-foot reveal">
-      Scope, timeline and deliverables are agreed in writing before we start. Every engagement
-      has a deadline.
-    </p>
-  </div>
-</section>
-
-<!-- ══════════════════════════ MARKETS ══════════════════════════ -->
-<section class="section" id="markets">
-  <div class="shell markets-grid">
-    <div>
-      <p class="eyebrow reveal">03 — Coverage</p>
-      <h2 class="section-title reveal">If it's tradable and the data exists,<br />we can test it.</h2>
-      <p class="section-lede reveal">
-        We're not limited to a fixed list of supported markets. Data availability is the only
-        real constraint — and we'll tell you whether clean history exists <em>before</em> you
-        commit to anything.
-      </p>
-    </div>
-    <div class="market-tags reveal">
-      <span>US equity options</span>
-      <span>Index futures</span>
-      <span>NIFTY F&amp;O</span>
-      <span>Equities</span>
-      <span>ETFs</span>
-      <span>Commodities</span>
-      <span>FX</span>
-      <span>Crypto perpetuals</span>
-      <span class="tag-more">…and whatever else you trade</span>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════ SAMPLE REPORT ══════════════════════════ -->
+<!-- ══════════════════════════ 04 · SAMPLE REPORT ══════════════════════════ -->
 <section class="section section-alt" id="report">
   <div class="shell">
     <header class="section-head">
-      <p class="eyebrow reveal">04 — Deliverable</p>
+      <p class="eyebrow reveal">04 — The deliverable</p>
       <h2 class="section-title reveal">A full report. Not a teaser.</h2>
       <p class="section-lede reveal">
-        This is the depth every engagement ships with. Scroll it — it's the whole thing,
-        the unflattering parts included.
+        This is the depth every engagement ships with — headline metrics, risk and tail
+        statistics, Monte Carlo, regime analysis and overfit diagnostics. Scroll it: it's the
+        whole thing, the unflattering parts included.
       </p>
     </header>
 
@@ -303,6 +368,17 @@
       <!-- KPI tiles -->
       <h4 class="rpt-h">Headline metrics</h4>
       <div class="kpi-grid" id="kpiGrid"></div>
+
+      <!-- Risk / distribution tiles -->
+      <h4 class="rpt-h">Risk &amp; distribution
+        <span class="rpt-h-note">What it felt like to hold</span>
+      </h4>
+      <div class="kpi-grid" id="riskGrid"></div>
+      <p class="rpt-note">
+        Headline metrics tell you what a strategy earned. These tell you what you'd have had to
+        sit through to collect it — which is what actually decides whether a system gets
+        switched off halfway down a drawdown.
+      </p>
 
       <!-- Equity curve -->
       <h4 class="rpt-h">Equity curve
@@ -331,6 +407,28 @@
         it happens.
       </p>
 
+      <!-- Monte Carlo -->
+      <h4 class="rpt-h">Monte Carlo
+        <span class="rpt-h-note">1,000 block-bootstrap resamples of the trade sequence</span>
+      </h4>
+      <figure class="chart-figure">
+        <!-- The legend lives OUTSIDE .mc-box: that box reserves its height with
+             aspect-ratio (the chart inside it is rendered lazily), and anything
+             else in there would push the chart straight back out of it. -->
+        <div id="mcLegend"></div>
+        <div class="chart-box mc-box" id="chartMonteCarlo"></div>
+        <figcaption>The realised backtest is one ordering of the trades. Resampling them in
+        blocks — blocks, so losing streaks stay intact — shows the range of equity paths the
+        same edge could plausibly have produced. Where the lime line sits inside the cone is
+        how lucky or unlucky the single realised path was.</figcaption>
+      </figure>
+      <div class="mc-grid" id="mcStats"></div>
+      <p class="rpt-note">
+        Position sizing should be set against the <em>worst 5%</em> row, not the median and not
+        the realised curve. Most accounts are not closed by the drawdown that was backtested;
+        they're closed by the one that wasn't.
+      </p>
+
       <!-- Monthly heatmap -->
       <h4 class="rpt-h">Monthly returns
         <span class="rpt-h-note">Percent, by calendar month</span>
@@ -357,6 +455,20 @@
         matters: a thin right tail carrying the whole result is a fragility warning.</figcaption>
       </figure>
 
+      <!-- Regimes -->
+      <h4 class="rpt-h">Regime analysis
+        <span class="rpt-h-note">k-means over 20-session realised volatility</span>
+      </h4>
+      <div class="table-wrap">
+        <table class="rpt-table reg-table" id="regimeTable"></table>
+      </div>
+      <p class="rpt-note">
+        A single Sharpe hides the question that matters at deployment: does the edge hold
+        everywhere, or is one regime carrying it? Sessions are clustered on the strategy's own
+        realised volatility — that describes the conditions this system actually experienced,
+        and is <em>not</em> a macro regime call.
+      </p>
+
       <!-- Parameter sensitivity -->
       <h4 class="rpt-h">Parameter sensitivity
         <span class="rpt-h-note">Sharpe across the parameter grid</span>
@@ -366,6 +478,17 @@
         <figcaption>We look for a broad plateau, not a single towering peak. A result that only
         survives at one exact parameter pair is curve-fitted, and we'll say so.</figcaption>
       </figure>
+
+      <!-- Robustness -->
+      <h4 class="rpt-h">Robustness &amp; overfit diagnostics
+        <span class="rpt-h-note">Is this an edge, or the best of N tries?</span>
+      </h4>
+      <div class="rob-grid" id="robGrid"></div>
+      <p class="rpt-note">
+        Any sweep produces a winner. These four numbers are what separates a winner that means
+        something from one that doesn't — and they are reported whether or not they flatter the
+        result.
+      </p>
 
       <!-- Assumptions -->
       <h4 class="rpt-h">Assumptions &amp; modelling</h4>
@@ -385,11 +508,142 @@
   </div>
 </section>
 
-<!-- ══════════════════════════ APPROACH ══════════════════════════ -->
-<section class="section" id="approach">
+<!-- ══════════════════════════ 05 · PROCESS ══════════════════════════ -->
+<section class="section" id="process">
   <div class="shell">
     <header class="section-head">
-      <p class="eyebrow reveal">05 — Why trust the numbers</p>
+      <p class="eyebrow reveal">05 — How it works</p>
+      <h2 class="section-title reveal">From rough idea to signed-off report.</h2>
+    </header>
+
+    <ol class="steps">
+      <li class="step reveal">
+        <span class="step-n">1</span>
+        <div>
+          <h3>Tell us what you trade</h3>
+          <p>You don't have to hand over your rules to start. A sentence about the market, the
+          idea and what you want answered is enough — we'll come back on whether clean data
+          exists and what testing it would involve.</p>
+        </div>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">2</span>
+        <div>
+          <h3>We write the spec</h3>
+          <p>Your idea becomes an unambiguous written specification — entries, exits, filters,
+          sizing, session rules, edge cases. Nothing gets coded until you approve it. You can
+          start this yourself with the <a href="./spec-template/">spec template</a>.</p>
+        </div>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">3</span>
+        <div>
+          <h3>We test it</h3>
+          <p>Coded to spec and run over clean data with costs and slippage. Out-of-sample held
+          back. Parameter surface swept, Monte Carlo run, overfit probability measured — so you
+          can see whether the edge is real or fragile.</p>
+        </div>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">4</span>
+        <div>
+          <h3>You get the report</h3>
+          <p>Standard KPIs plus any custom metric you ask for, the full assumption list, and a
+          plain-English read on what held up and what didn't — including when the answer is
+          "this doesn't work".</p>
+        </div>
+      </li>
+    </ol>
+
+    <p class="process-foot reveal">
+      Scope, timeline and deliverables are agreed in writing before we start. Every engagement
+      has a deadline.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════ 06 · SCALE & METHOD ══════════════════════════ -->
+<section class="section section-alt" id="scale">
+  <div class="shell">
+    <header class="section-head">
+      <p class="eyebrow reveal">06 — Scale &amp; method</p>
+      <!-- Non-breaking hyphen: a normal one lets the line break as
+           "Not hand-" / "computed." which reads as a typo. -->
+      <h2 class="section-title reveal">Hand-delivered. Not hand&#8209;computed.</h2>
+      <p class="section-lede reveal">
+        A person owns your engagement end to end. What sits behind that person is a compute
+        pipeline that can evaluate far more of the problem space than a laptop and a spreadsheet
+        ever will.
+      </p>
+    </header>
+
+    <div class="scale-grid">
+      <article class="scale reveal">
+        <span class="scale-n">1M+</span>
+        <h3>Parameter combinations per sweep</h3>
+        <p>Six parameters at twenty values each is sixty-four million configurations. We evaluate
+        the surface — plateaus, cliffs, dead zones — rather than reporting whichever single
+        setting happened to win.</p>
+      </article>
+
+      <article class="scale reveal">
+        <span class="scale-n">N×</span>
+        <h3>Instruments, in parallel</h3>
+        <p>The same rule set run across every instrument with clean history, so you can see
+        whether the edge lives in the logic or in one symbol's particular past. Cross-sectional
+        robustness is the cheapest lie-detector there is.</p>
+      </article>
+
+      <article class="scale reveal">
+        <span class="scale-n">10k</span>
+        <h3>Monte Carlo paths per result</h3>
+        <p>Block-bootstrap resampling of the trade sequence, so you get a distribution of
+        drawdowns and outcomes instead of the one path that happened to occur. Sizing decisions
+        come from the tail, not the median.</p>
+      </article>
+
+      <article class="scale reveal">
+        <span class="scale-n">ML</span>
+        <h3>Applied to validation, not prediction</h3>
+        <p>Deflated Sharpe, CSCV overfit probability, purged and embargoed cross-validation,
+        feature-stability and regime clustering. The machine-learning toolkit pointed at whether
+        your edge is real — never at inventing one for you.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ 07 · MARKETS ══════════════════════════ -->
+<section class="section" id="markets">
+  <div class="shell markets-grid">
+    <div>
+      <p class="eyebrow reveal">07 — Coverage</p>
+      <h2 class="section-title reveal">If it's tradable and the data exists,<br />we can test it.</h2>
+      <p class="section-lede reveal">
+        We're not limited to a fixed list of supported markets. Data availability is the only
+        real constraint — and we'll tell you whether clean history exists <em>before</em> you
+        commit to anything.
+      </p>
+    </div>
+    <div class="market-tags reveal">
+      <span>US equity options</span>
+      <span>Index futures</span>
+      <span>NIFTY F&amp;O</span>
+      <span>Equities</span>
+      <span>ETFs</span>
+      <span>Commodities</span>
+      <span>FX</span>
+      <span>Crypto perpetuals</span>
+      <span class="tag-more">…and whatever else you trade</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ 08 · APPROACH ══════════════════════════ -->
+<section class="section section-alt" id="approach">
+  <div class="shell">
+    <header class="section-head">
+      <p class="eyebrow reveal">08 — Why trust the numbers</p>
       <h2 class="section-title reveal">The unflattering parts stay in.</h2>
     </header>
 
@@ -428,20 +682,43 @@
   </div>
 </section>
 
-<!-- ══════════════════════════ FAQ ══════════════════════════ -->
-<section class="section section-alt" id="faq">
+<!-- ══════════════════════════ 09 · FAQ ══════════════════════════ -->
+<section class="section" id="faq">
   <div class="shell faq-shell">
     <header class="section-head">
-      <p class="eyebrow reveal">06 — Questions</p>
+      <p class="eyebrow reveal">09 — Questions</p>
       <h2 class="section-title reveal">Before you ask.</h2>
     </header>
 
     <div class="faq-list">
       <details class="faq-item reveal">
+        <summary>What does it cost?</summary>
+        <div><p>Scope and cost are agreed in writing before any work starts, and nothing begins
+        until you've approved both. What it comes to depends on the complexity of the rules, how
+        many instruments are involved and how much data preparation is needed — which is why we
+        quote against a specific brief rather than publish a price list. Send the idea and
+        you'll get back a scope, a deadline and a fixed quote, with no obligation to proceed.</p></div>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Do you work with firms, or only individual traders?</summary>
+        <div><p>Both. Most enquiries come from individual traders with a rule set they want
+        tested properly. We also work with desks, prop firms and fund teams — usually on larger
+        sweeps, on validating a model before capital is committed, or as overflow capacity for
+        research queued behind a small team. The process is identical; scope and reporting depth
+        change.</p></div>
+      </details>
+      <details class="faq-item reveal">
         <summary>Do you give trading advice or recommend strategies?</summary>
         <div><p>No. We are a testing and reporting service. You specify the strategy; we test it
         and report what the data shows. We don't recommend instruments, don't sell signals,
         don't manage money, and nothing we produce is investment advice.</p></div>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Is my strategy kept confidential?</summary>
+        <div><p>Yes. Your idea is yours. We don't trade it, don't resell it, don't reuse it for
+        another client, and we'll sign an NDA before you send anything if you want one on file.
+        You're also welcome to describe the shape of the problem first and share the actual
+        rules only once you're comfortable.</p></div>
       </details>
       <details class="faq-item reveal">
         <summary>What if my idea is only half-formed?</summary>
@@ -452,8 +729,10 @@
       <details class="faq-item reveal">
         <summary>What do I actually need to send you?</summary>
         <div><p>Whatever you have: rules in plain English, a Pine/Python script, chart
-        screenshots, or a description of what you watch for. The more specific the entries,
-        exits and sizing, the faster we start.</p></div>
+        screenshots, or a description of what you watch for. If you'd rather arrive prepared,
+        the <a href="./spec-template/">strategy spec template</a> is the same document we'd
+        build with you — filling it in gets you a faster, tighter quote. No email required to
+        read it.</p></div>
       </details>
       <details class="faq-item reveal">
         <summary>Which markets can you test?</summary>
@@ -466,12 +745,7 @@
         <summary>How long does it take?</summary>
         <div><p>It depends on the complexity of the rules and the data involved. You get a
         scope and a firm deadline in writing before any work starts, so you're never waiting on
-        an open-ended promise.</p></div>
-      </details>
-      <details class="faq-item reveal">
-        <summary>Is my strategy kept confidential?</summary>
-        <div><p>Yes. Your idea is yours. We don't trade it, don't resell it, don't reuse it for
-        another client, and we'll sign an NDA if you want one on file.</p></div>
+        an open-ended promise. Enquiries are answered {{brand.responseTime}}.</p></div>
       </details>
       <details class="faq-item reveal">
         <summary>Can I ask for metrics that aren't in the standard report?</summary>
@@ -488,16 +762,22 @@
   </div>
 </section>
 
-<!-- ══════════════════════════ CONTACT ══════════════════════════ -->
-<section class="section" id="contact">
+<!-- ══════════════════════════ 10 · CONTACT ══════════════════════════ -->
+<section class="section section-alt" id="contact">
   <div class="shell contact-grid">
     <div class="contact-copy">
-      <p class="eyebrow reveal">07 — Start</p>
-      <h2 class="section-title reveal">Send us the idea.</h2>
+      <p class="eyebrow reveal">10 — Start</p>
+      <h2 class="section-title reveal">Start with the problem, not the rules.</h2>
       <p class="section-lede reveal">
         Tell us roughly what you trade and what you want answered. We'll come back with what
-        we'd need, what we'd do, and how long it takes.
+        we'd need, what we'd do, and how long it takes — before you share anything proprietary.
       </p>
+
+      <ul class="trust-points reveal">
+        <li>Every enquiry answered {{brand.responseTime}}</li>
+        <li>NDA signed before you send anything, if you want one</li>
+        <li>Your idea is never traded, resold or reused</li>
+      </ul>
 
       <a class="wa-card reveal" href="{{brand.whatsappLink}}" target="_blank" rel="noopener" data-track="whatsapp-contact">
         <span class="wa-icon" aria-hidden="true">
@@ -540,7 +820,7 @@
 
         <div class="field">
           <label for="f-msg">What are you looking for?</label>
-          <textarea id="f-msg" name="message" rows="5" required placeholder="e.g. I have a breakout strategy on index futures I'd like backtested with realistic costs, and I want to know if it survives out-of-sample."></textarea>
+          <textarea id="f-msg" name="message" rows="5" required placeholder="e.g. I trade index futures intraday and have a breakout idea I think is curve-fit. I want to know whether it survives realistic costs and out-of-sample."></textarea>
           <span class="err" data-err="message"></span>
         </div>
 
@@ -553,8 +833,8 @@
 
         <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
         <p class="form-fine">
-          We reply to every enquiry. Your details are used only to respond to you — never sold,
-          never added to a list.
+          We reply to every enquiry, {{brand.responseTime}}. Your details are used only to
+          respond to you — never sold, never added to a list.
         </p>
       </form>
     </div>
@@ -573,10 +853,12 @@
         <p>{{brand.tagline}}</p>
       </div>
       <nav class="footer-nav" aria-label="Footer">
+        <a href="#problem">The problem</a>
+        <a href="#who">Who it's for</a>
         <a href="#services">Services</a>
-        <a href="#process">Process</a>
         <a href="#report">Sample report</a>
-        <a href="#approach">Approach</a>
+        <a href="#process">Process</a>
+        <a href="./spec-template/">Spec template</a>
         <a href="#faq">FAQ</a>
         <a href="#contact">Contact</a>
       </nav>
@@ -602,7 +884,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>© {{site.year}} {{brand.legalEntity}} · {{brand.jurisdiction}}</p>
+      <p>© {{site.year}} {{brand.name}}</p>
       <p><a href="mailto:{{brand.email}}">{{brand.email}}</a></p>
     </div>
   </div>

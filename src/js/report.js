@@ -26,6 +26,9 @@ import data, {
   lookbacks,
   thresholds,
   assumptions,
+  getMonteCarlo,
+  getRobustness,
+  getRegimes,
 } from '../data/report-data.js';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -491,6 +494,195 @@ function renderSensitivity(box) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   MONTE CARLO FAN  —  percentile cone with the realised path drawn inside it
+   ══════════════════════════════════════════════════════════════════════════ */
+function renderMonteCarlo(box) {
+  const mc = getMonteCarlo();
+  // Into its own slot, not into `box` — see the comment in index.html.
+  legend(document.getElementById('mcLegend') || box, [
+    ['rgba(57,135,229,0.18)', '5th–95th percentile'],
+    ['rgba(57,135,229,0.38)', '25th–75th percentile'],
+    [C.pos, 'Median path'],
+    [C.line, 'Realised backtest'],
+  ]);
+
+  const W = 1000, H = 330;
+  const P = { l: 66, r: 14, t: 18, b: 46 };
+  const svg = svgRoot(W, H);
+  svg.setAttribute('aria-label',
+    `Monte Carlo percentile cone from ${mc.paths} block-bootstrap resamples of the trade sequence`);
+
+  const all = mc.bands.flatMap((b) => b.p).concat(mc.realisedPath);
+  const min = Math.min(...all, kpis.startEquity) * 0.96;
+  const max = Math.max(...all) * 1.02;
+  const X = (i) => P.l + (i / (mc.bands.length - 1)) * (W - P.l - P.r);
+  const Y = (v) => P.t + (1 - (v - min) / (max - min)) * (H - P.t - P.b);
+
+  for (let i = 0; i <= 4; i++) {
+    const v = min + ((max - min) * i) / 4;
+    const y = Y(v);
+    svg.appendChild(el('line', { x1: P.l, x2: W - P.r, y1: y, y2: y, stroke: C.grid, 'stroke-width': 1 }));
+    const t = el('text', { x: P.l - 12, y: y + 4, fill: C.muted, 'font-size': 11, 'text-anchor': 'end', 'font-family': 'JetBrains Mono, monospace' });
+    t.textContent = moneyShort(v);
+    svg.appendChild(t);
+  }
+
+  // Cone: outer band first, inner band over it, so the overlap reads darker.
+  const band = (loIdx, hiIdx, opacity) => {
+    const up = mc.bands.map((b, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(b.p[hiIdx]).toFixed(1)}`).join('');
+    const down = mc.bands
+      .map((b, i) => ({ b, i }))
+      .reverse()
+      .map(({ b, i }) => `L${X(i).toFixed(1)},${Y(b.p[loIdx]).toFixed(1)}`)
+      .join('');
+    svg.appendChild(el('path', { d: `${up}${down}Z`, fill: C.pos, opacity }));
+  };
+  band(0, 4, 0.16);
+  band(1, 3, 0.24);
+
+  const path = (vals, stroke, width, dash) => {
+    const d = vals.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    const a = { d, fill: 'none', stroke, 'stroke-width': width, 'stroke-linejoin': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    svg.appendChild(el('path', a));
+  };
+  path(mc.bands.map((b) => b.p[2]), C.pos, 1.75, '5 4');
+  path(mc.realisedPath, C.line, 2.25);
+
+  // Starting capital reference — the line that matters for "did it lose money".
+  const y0 = Y(kpis.startEquity);
+  svg.appendChild(el('line', { x1: P.l, x2: W - P.r, y1: y0, y2: y0, stroke: C.axis, 'stroke-width': 1, 'stroke-dasharray': '2 4' }));
+
+  [0, 25, 50, 75, 100].forEach((p) => {
+    const i = Math.round((p / 100) * (mc.bands.length - 1));
+    const t = el('text', { x: X(i), y: H - 24, fill: C.muted, 'font-size': 11, 'text-anchor': 'middle', 'font-family': 'JetBrains Mono, monospace' });
+    t.textContent = `${p}%`;
+    svg.appendChild(t);
+  });
+  const xl = el('text', { x: (W + P.l) / 2, y: H - 5, fill: C.muted, 'font-size': 10.5, 'text-anchor': 'middle', 'font-family': 'JetBrains Mono, monospace' });
+  xl.textContent = 'progress through the trade sequence';
+  svg.appendChild(xl);
+
+  const cross = el('line', { y1: P.t, y2: H - P.b, stroke: C.axis, 'stroke-width': 1, opacity: 0 });
+  svg.appendChild(cross);
+  box.appendChild(svg);
+  const tip = tipFor(box);
+
+  svg.addEventListener('pointermove', (e) => {
+    const r = svg.getBoundingClientRect();
+    const rel = ((e.clientX - r.left) / r.width) * W;
+    const i = Math.round(((rel - P.l) / (W - P.l - P.r)) * (mc.bands.length - 1));
+    if (i < 0 || i >= mc.bands.length) return;
+    const b = mc.bands[i];
+    cross.setAttribute('x1', X(i));
+    cross.setAttribute('x2', X(i));
+    cross.setAttribute('opacity', 1);
+    tip.innerHTML =
+      `<b>${Math.round(b.t * 100)}% through</b><br>` +
+      `<b>95th</b> ${moneyShort(b.p[4])}<br>` +
+      `<b>median</b> ${moneyShort(b.p[2])}<br>` +
+      `<b>5th</b> ${moneyShort(b.p[0])}<br>` +
+      `<b>realised</b> ${moneyShort(mc.realisedPath[i])}`;
+    tip.classList.add('on');
+    placeTip(tip, box, e.clientX, e.clientY);
+  });
+  svg.addEventListener('pointerleave', () => {
+    cross.setAttribute('opacity', 0);
+    tip.classList.remove('on');
+  });
+}
+
+function renderMonteCarloStats(root) {
+  const mc = getMonteCarlo();
+  const rows = [
+    ['Final return — median', pct(mc.finalP50), '', `realised ${pct(mc.realised)}`],
+    ['Final return — 5th percentile', pct(mc.finalP5), mc.finalP5 < 0 ? 'neg' : '', '1 in 20 paths did worse'],
+    ['Final return — 95th percentile', pct(mc.finalP95), '', '1 in 20 paths did better'],
+    ['Max drawdown — median', `${mc.ddMedian.toFixed(1)}%`, 'neg', `realised ${mc.ddRealised.toFixed(1)}%`],
+    ['Max drawdown — worst 5%', `${mc.ddP95.toFixed(1)}%`, 'neg', 'plan for this, not the median'],
+    ['Paths ending in profit', `${mc.probProfit.toFixed(1)}%`, '', `of ${mc.paths.toLocaleString()} resamples`],
+    ['Paths breaching −20%', `${mc.probDD20.toFixed(1)}%`, '', 'at some point in the run'],
+    ['Paths breaching −30%', `${mc.probDD30.toFixed(1)}%`, '', 'at some point in the run'],
+  ];
+  root.innerHTML = rows
+    .map(
+      ([k, v, tone, sub]) =>
+        `<div class="mc-stat"><div class="mc-k">${k}</div>` +
+        `<div class="mc-v ${tone}">${v}</div>` +
+        `<div class="mc-s">${sub}</div></div>`
+    )
+    .join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ROBUSTNESS  —  PSR / DSR / PBO
+   ══════════════════════════════════════════════════════════════════════════ */
+function renderRobustness(root) {
+  const rb = getRobustness();
+  // A probability that rounds to 100 is a rounding artefact, not a certainty.
+  const prob = (v) => (v >= 99.95 ? '>99.9%' : `${v.toFixed(1)}%`);
+
+  const cards = [
+    {
+      k: 'Probabilistic Sharpe',
+      v: prob(rb.psr),
+      tone: 'pos',
+      d: `Probability the true Sharpe is above zero, corrected for track length (${kpis.sessions.toLocaleString()} sessions), skew ${kpis.skew.toFixed(2)} and excess kurtosis ${kpis.kurtosis.toFixed(2)}.`,
+    },
+    {
+      k: 'Deflated Sharpe',
+      v: prob(rb.dsr),
+      tone: rb.dsr >= 90 ? 'pos' : rb.dsr >= 60 ? '' : 'neg',
+      d: `The same test with the bar raised to Sharpe ${rb.sr0.toFixed(2)} — what the best of ${rb.trials} trials would be expected to show with no edge at all. Sharpe ${rb.sharpe.toFixed(2)} clears it.`,
+    },
+    {
+      k: 'Prob. of backtest overfitting',
+      v: `${rb.pbo.toFixed(1)}%`,
+      tone: rb.pbo <= 20 ? 'pos' : rb.pbo <= 40 ? '' : 'neg',
+      d: `CSCV over ${rb.splits} blocks and all ${rb.combinations} symmetric splits. This is how often the in-sample winner lands below median out-of-sample. 50% is a coin flip.`,
+    },
+    {
+      k: 'Configurations evaluated',
+      v: rb.trials.toString(),
+      tone: '',
+      d: 'Every one of them is reported in the sensitivity grid below — including the ones that failed. Selecting a winner from a grid you never show is how backtests lie.',
+    },
+  ];
+
+  root.innerHTML = cards
+    .map(
+      (c) =>
+        `<div class="rob-card"><div class="rob-k">${c.k}</div>` +
+        `<div class="rob-v ${c.tone}">${c.v}</div>` +
+        `<p class="rob-d">${c.d}</p></div>`
+    )
+    .join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REGIME ANALYSIS
+   ══════════════════════════════════════════════════════════════════════════ */
+function renderRegimes(table) {
+  const rg = getRegimes();
+  const head = ['Regime', 'Realised vol', 'Sessions', '% of time', 'Ann. return', 'Sharpe', 'Worst day', 'Share of P&L'];
+  table.innerHTML =
+    `<thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead>` +
+    `<tbody>${rg
+      .map(
+        (r) =>
+          `<tr><td>${r.label}</td>` +
+          `<td>${r.annVol.toFixed(1)}%</td>` +
+          `<td>${r.sessions}</td>` +
+          `<td>${r.share.toFixed(1)}%</td>` +
+          `<td class="${r.annRet >= 0 ? 'v-pos' : 'v-neg'}">${pct(r.annRet)}</td>` +
+          `<td>${r.sharpe.toFixed(2)}</td>` +
+          `<td class="v-neg">${r.worstDay.toFixed(2)}%</td>` +
+          `<td>${r.pnlShare.toFixed(1)}%</td></tr>`
+      )
+      .join('')}</tbody>`;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    NON-CHART BLOCKS
    ══════════════════════════════════════════════════════════════════════════ */
 function renderHead() {
@@ -515,8 +707,20 @@ function renderHead() {
   });
 }
 
+function paintTiles(g, tiles) {
+  if (!g) return;
+  tiles.forEach(([label, value, suffix, dec, tone, sub]) => {
+    const d = document.createElement('div');
+    d.className = 'kpi';
+    d.innerHTML =
+      `<div class="kpi-label">${label}</div>` +
+      `<div class="kpi-value ${tone}" data-count="${value}" data-dec="${dec}" data-suffix="${suffix}">${value.toFixed(dec)}${suffix}</div>` +
+      `<div class="kpi-sub">${sub}</div>`;
+    g.appendChild(d);
+  });
+}
+
 function renderKpis() {
-  const g = document.getElementById('kpiGrid');
   const tiles = [
     ['Net return', kpis.totalReturn, '%', 1, 'pos', 'over 5 years'],
     ['CAGR', kpis.cagr, '%', 1, 'pos', 'annualised'],
@@ -531,16 +735,25 @@ function renderKpis() {
     ['Volatility', kpis.volatility, '%', 1, '', 'annualised'],
     ['Positive months', kpis.positiveMonths, '%', 0, '', `best ${pct(kpis.bestMonth)} · worst ${pct(kpis.worstMonth)}`],
   ];
+  paintTiles(document.getElementById('kpiGrid'), tiles);
 
-  tiles.forEach(([label, value, suffix, dec, tone, sub]) => {
-    const d = document.createElement('div');
-    d.className = 'kpi';
-    d.innerHTML =
-      `<div class="kpi-label">${label}</div>` +
-      `<div class="kpi-value ${tone}" data-count="${value}" data-dec="${dec}" data-suffix="${suffix}">${value.toFixed(dec)}${suffix}</div>` +
-      `<div class="kpi-sub">${sub}</div>`;
-    g.appendChild(d);
-  });
+  // Second group. Headline metrics tell you what it earned; these tell you
+  // what it felt like to hold — which is what actually decides whether a
+  // strategy gets switched off halfway through a drawdown.
+  paintTiles(document.getElementById('riskGrid'), [
+    ['Ulcer index', kpis.ulcer, '', 2, '', 'RMS depth underwater'],
+    ['Ulcer perf. index', kpis.upi, '', 2, '', 'CAGR per unit of pain'],
+    ['Recovery factor', kpis.recoveryFactor, '', 2, '', 'net return / max DD'],
+    ['Omega ratio', kpis.omega, '', 2, '', 'gain / loss above zero'],
+    ['Daily VaR 95%', kpis.var95, '%', 2, 'neg', '1 day in 20 is worse'],
+    ['Daily CVaR 95%', kpis.cvar95, '%', 2, 'neg', 'average of that worst 5%'],
+    ['Return skew', kpis.skew, '', 2, '', 'daily, 0 = symmetric'],
+    ['Excess kurtosis', kpis.kurtosis, '', 2, '', 'daily, 0 = normal tails'],
+    ['Tail ratio', kpis.tailRatio, '', 2, '', 'P95 win / P5 loss, in R'],
+    ['Best trade', kpis.bestTrade, 'R', 2, '', 'single largest winner'],
+    ['Worst trade', kpis.worstTrade, 'R', 2, 'neg', 'single largest loser'],
+    ['Trades / month', kpis.tradesPerMonth, '', 1, '', `${kpis.maxLossStreak} max consecutive losses`],
+  ]);
 }
 
 function renderOos() {
@@ -627,6 +840,69 @@ function renderRead() {
   `;
 }
 
+/**
+ * The robustness read is appended separately because it depends on the
+ * deferred Monte Carlo and CSCV blocks — running it eagerly would pull ~80ms
+ * of arithmetic back onto the boot path for a paragraph nobody has scrolled to.
+ */
+function appendRobustnessRead(root) {
+  const mc = getMonteCarlo();
+  const rb = getRobustness();
+  const rg = getRegimes();
+  const worstRegime = rg.reduce((a, r) => (r.sharpe < a.sharpe ? r : a), rg[0]);
+
+  const p = document.createElement('div');
+  p.innerHTML = `
+    <p><strong>How much of this was luck?</strong> Reshuffling the realised trades in blocks
+    ${mc.paths.toLocaleString()} times puts the backtested ${pct(mc.realised)} near the
+    ${pct(mc.finalP50)} median — so the headline result is not an outlier path. The tail is the
+    part worth reading: the worst 5% of resamples drew down
+    ${mc.ddP95.toFixed(1)}% against the ${mc.ddRealised.toFixed(1)}% actually realised, and
+    ${mc.probDD20.toFixed(1)}% of paths breached −20% at some point. Size for that number, not
+    for the one on the equity curve.</p>
+
+    <p><strong>And overfitting?</strong> The deflated Sharpe puts the edge at
+    ${rb.dsr >= 99.95 ? '>99.9' : rb.dsr.toFixed(1)}% likely to be real after accounting for
+    ${rb.trials} configurations being tried — the bar it had to clear was Sharpe
+    ${rb.sr0.toFixed(2)}, not zero. CSCV returns a
+    ${rb.pbo.toFixed(1)}% probability of backtest overfitting; under 20% is the range we'd
+    call robust, 50% would mean the in-sample winner is a coin flip. Across volatility regimes
+    the edge persists but thins — Sharpe falls to ${worstRegime.sharpe.toFixed(2)} in the
+    ${worstRegime.label.toLowerCase()} bucket, which is where a live deployment would be
+    tested hardest.</p>
+  `;
+  root.appendChild(p);
+}
+
+/**
+ * Run `fn` when `elm` gets within a screenful of the viewport.
+ *
+ * The Monte Carlo, CSCV and regime blocks cost ~80ms of arithmetic between
+ * them. That is fine to spend — but not during boot, on a page that paid
+ * traffic lands on and bounces from. Their containers reserve their own
+ * height in CSS, so deferring costs no layout shift.
+ */
+function whenNear(elm, fn) {
+  if (!elm) return;
+  if (!('IntersectionObserver' in window)) {
+    fn();
+    return;
+  }
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      try {
+        fn();
+      } catch (err) {
+        console.warn('[report] deferred block failed:', err);
+      }
+    },
+    { rootMargin: '900px 0px' }
+  );
+  io.observe(elm);
+}
+
 /* ══════════════════════════════════════════════════════════════════════════ */
 export function initReport(cfg) {
   if (!document.getElementById('reportRoot')) return;
@@ -647,6 +923,21 @@ export function initReport(cfg) {
   renderMonthly(document.getElementById('chartMonthly'));
   renderDistribution(document.getElementById('chartDist'));
   renderSensitivity(document.getElementById('chartSens'));
+
+  const mcBox = document.getElementById('chartMonteCarlo');
+  whenNear(mcBox, () => {
+    renderMonteCarlo(mcBox);
+    renderMonteCarloStats(document.getElementById('mcStats'));
+  });
+
+  const robBox = document.getElementById('robGrid');
+  whenNear(robBox, () => renderRobustness(robBox));
+
+  const regTable = document.getElementById('regimeTable');
+  whenNear(regTable, () => renderRegimes(regTable));
+
+  const readEl = document.getElementById('readBlock');
+  whenNear(readEl, () => appendRobustnessRead(readEl));
 }
 
 export { data };
