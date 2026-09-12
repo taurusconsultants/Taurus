@@ -63,12 +63,12 @@ const OG = page(
        <!-- Mirrors the page's own H1. If the hero headline changes, change it
             here too and re-run — a link preview that promises different words
             from the page it opens reads as a bait-and-switch. -->
-       <div style="font-size:88px;font-weight:700;line-height:0.98;letter-spacing:-0.045em">
-         Great backtest.<br><span style="color:${ACCENT}">Then it went live.</span>
+       <div style="font-size:74px;font-weight:700;line-height:1.0;letter-spacing:-0.045em">
+         Backtest: great.<br>Paper: promising.<br><span style="color:#E5484D">Live: disappointing.</span>
        </div>
-       <div style="margin-top:30px;font-size:25px;line-height:1.45;color:${MUTED};max-width:47ch">
-         We backtest, optimise and stress-test the strategies you specify —
-         costs, out-of-sample and overfit diagnostics included.
+       <div style="margin-top:26px;font-size:24px;line-height:1.45;color:${MUTED};max-width:48ch">
+         Sound familiar? The problem isn't your strategy — it's that nobody
+         checked where it breaks. We do, before you put money behind it.
        </div>
      </div>
      <div style="display:flex;gap:30px;font-size:19px;color:${MUTED};letter-spacing:0.02em">

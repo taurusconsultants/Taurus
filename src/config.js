@@ -115,6 +115,12 @@ export const motion = {
   // Below this viewport width the shader is skipped entirely and the static
   // CSS fallback is used instead. Protects mobile battery + first paint.
   webglMinWidth: 768,
+
+  // The hero chart strip (backtest → live) loops. This is how long the
+  // finished chart holds, in seconds, before it fades and redraws. The draw
+  // itself takes ~3.5s, so the full cycle is roughly this + 4. Set to 0 to
+  // draw once and stop. Paused automatically while the hero is off-screen.
+  heroChartHold: 4,
 };
 
 /**

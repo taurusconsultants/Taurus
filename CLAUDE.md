@@ -584,6 +584,49 @@ competitor — they sell an observability **platform** to mid-size quant teams; 
   forgettable; a mirror of the reader's own experience creates urgency. Added a
   section 01 naming the four failure modes, which is also the copy a blog would
   later rank for.
+- 2026-09-12 (later): **Hero rewritten again, from an event to a feeling.** Now
+  "Perfect on paper. / Still don't trust it?" with the lede opening "Good — you
+  shouldn't yet." The previous line described something that *happened* (going
+  live and losing); the doubt after over-tuning a strategy is more universal, is
+  the exact moment a prospect would reach out, and works for a PM reading a
+  researcher's backtest as well as for a retail trader. CTAs changed to "Find out
+  if it's real" / "See what you'd get back". Rejected "The curve looks perfect. /
+  You still don't trust it." (stronger, but 25 characters won't fit one line at
+  hero size) and "Great backtest. / Would you fund it?" (softer).
+- 2026-09-12 (final): **Hero copy settled on the three-beat scoreboard** —
+  "Backtest: great. / Paper: promising. / Live: disappointing." with the lede
+  "Sound familiar? The problem isn't your strategy. It's that nobody checked where
+  it breaks. We do…". Structure borrowed deliberately from referentiallabs.com's
+  opening paragraph (their strongest copy, buried under a jargon headline): a
+  three-stage story arc plus a blame-removing reframe. Chosen by the user from eight
+  compositions. The third line is set in `--neg` red, not lime, so headline and the
+  chart strip's red live segment read as one statement — flip `.down` to
+  `var(--accent)` if it ever feels too harsh. Three-line hero uses the
+  `.hero-title-3` size variant.
+- 2026-09-12: **Hero chart loops.** Draws, holds `motion.heroChartHold` seconds
+  (default 4), fades, redraws — a paused GSAP timeline with `repeat:-1` whose t=0
+  `.set()`s reset it on every cycle. Paused by IntersectionObserver when the strip
+  is off-screen. `heroChartHold: 0` draws once and stops.
+- 2026-09-12: **Critical CSS inlined in `<head>`** on both pages: dark background,
+  brand-mark size, skip-link off-screen. Fixes the "blue smile" the user saw — the
+  horns of the mark rendered full-width in link-blue before the stylesheet arrived
+  (always visible in `npm run dev`, where Vite injects CSS via JS; possible on slow
+  connections in production). Also removes the white flash on slow mobile.
+- 2026-09-12: **Hero chart strip** — the headline drawn: a lime backtest curve
+  draws in, pauses at a dashed "live" marker, then continues red and jagged. Paths
+  are static, seeded and inlined in `index.html` (regenerate with the snippet in
+  the session notes if the shape ever needs changing — seed 7, LCG 16807). Animated
+  as the last beat of the hero timeline in `motion.js`; fully visible without JS or
+  under reduced motion. `vector-effect="non-scaling-stroke"` was deliberately left
+  OFF: it makes `stroke-dasharray` units ambiguous across browsers and breaks the
+  draw-in.
+- 2026-09-12: **Motion/polish layer added** — cursor-tracked spotlight on all card
+  grids (`.spot`, via CSS custom properties; hidden on touch), header
+  reading-progress line, blur-to-sharp on section titles only, primary-CTA glow
+  (`.btn-glow`, hero + contact only so "primary" still means something), marquee
+  edge fades, 3.5% SVG film grain, a lime hairline on the report, and a glow behind
+  the contact form. Everything is CSS/GSAP, no new dependencies, and every piece is
+  switched off under `prefers-reduced-motion` and in print.
 - 2026-09-12: **Primary CTA lowered from "Send your strategy" to "Tell us what you
   trade."** Asking a stranger for their proprietary alpha on first contact is the
   largest possible ask and adversely selects — whoever has a genuinely good edge

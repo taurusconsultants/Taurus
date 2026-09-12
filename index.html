@@ -23,6 +23,19 @@
 <meta name="twitter:image" content="{{brand.url}}/og.png" />
 <meta name="theme-color" content="#08090B" />
 
+<!-- Critical CSS. Painted before the stylesheet arrives, so there is never a
+     white flash, never a giant unstyled brand mark (it's an SVG inside a link:
+     with no CSS it renders full-width in link-blue), and the skip-link stays
+     off-screen. In `npm run dev` Vite injects CSS via JS, so without this the
+     unstyled page is visible for ~1s on every reload. -->
+<style>
+  html{background:#08090B;color:#F4F6F8}
+  body{margin:0;background:#08090B}
+  .wordmark-mark{width:25px;height:25px}
+  .skip{position:absolute;left:-9999px}
+  .hero-canvas{opacity:0}
+</style>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -36,6 +49,8 @@
 
 <!-- ══════════════════════════ HEADER ══════════════════════════ -->
 <header class="site-header" id="siteHeader">
+  <!-- Reading-progress line. Scaled by motion.js; sits on the header's bottom edge. -->
+  <div class="progress" id="progress" aria-hidden="true"></div>
   <div class="shell header-inner">
     <a class="wordmark" href="#hero" aria-label="{{brand.name}} home">
       {{brand.mark}}
@@ -74,31 +89,64 @@
     <!-- Two lines, and they must STAY two lines. The reveal masks each line
          separately (.line has overflow:hidden), so a wrap turns one mask into
          a two-row mask and the rhythm falls apart. If you change this copy,
-         check it against the clamp in .hero-title at 1440px and at 390px. -->
-    <h1 class="hero-title">
-      <span class="line"><span class="line-i">Great backtest.</span></span>
-      <span class="line"><span class="line-i accent">Then it went live.</span></span>
+         check it against the clamp in .hero-title at 1440px and at 390px.
+
+         The copy is a mirror of a FEELING, not a description of a service:
+         the reader has tuned a strategy until the curve looks beautiful and
+         does not trust it. That doubt is the buyer. -->
+    <h1 class="hero-title hero-title-3">
+      <span class="line"><span class="line-i">Backtest: great.</span></span>
+      <span class="line"><span class="line-i">Paper: promising.</span></span>
+      <span class="line"><span class="line-i down">Live: disappointing.</span></span>
     </h1>
 
     <p class="hero-lede reveal">
-      That gap is almost never bad luck. It's costs that were never modelled, a fill that
-      can't happen, a look-ahead nobody caught, or an edge fitted to noise. We find out
-      which one it is — on the strategy you specify, before your capital does.
+      Sound familiar? The problem isn't your strategy. It's that nobody checked where it
+      breaks. We do — with real costs, real fills and data it has never seen — before
+      you put money behind it.
     </p>
 
     <div class="hero-cta reveal">
-      <a class="btn btn-primary" href="{{brand.whatsappLink}}" target="_blank" rel="noopener" data-track="whatsapp-hero">
+      <a class="btn btn-primary btn-glow" href="{{brand.whatsappLink}}" target="_blank" rel="noopener" data-track="whatsapp-hero">
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm5.8 14.16c-.24.68-1.42 1.3-1.95 1.34-.5.05-1.13.07-1.83-.11-.42-.11-.96-.29-1.66-.59-2.92-1.26-4.82-4.2-4.97-4.4-.14-.2-1.19-1.58-1.19-3.02 0-1.43.75-2.14 1.02-2.43.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.59.83 2.02.9 2.17.07.14.12.31.02.51-.1.2-.15.31-.29.48-.14.16-.3.37-.43.49-.14.14-.29.3-.13.58.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.42.29.14.46.12.63-.07.17-.2.72-.84.92-1.13.19-.29.39-.24.65-.14.27.09 1.7.8 1.99.95.29.14.48.22.55.34.07.12.07.7-.17 1.38Z"/></svg>
-        Tell us what you trade
+        Find out if it's real
       </a>
-      <a class="btn btn-ghost" href="#report">See a full sample report</a>
+      <a class="btn btn-ghost btn-arrow" href="#report">See what you'd get back<span aria-hidden="true">→</span></a>
     </div>
 
     <ul class="hero-points reveal">
-      <li>You don't have to send your rules to start the conversation</li>
-      <li>Costs, slippage and out-of-sample in every result</li>
+      <li>Describe it first — no rules needed to start</li>
+      <li>Real costs, real fills, out-of-sample. Every time.</li>
       <li>Reply {{brand.responseTime}} · NDA on request</li>
     </ul>
+
+    <!-- The headline, drawn. A clean backtest curve rises, hits the "live"
+         marker, then carries on in red — jagged and down. Paths are static and
+         seeded (see the Decisions Log); motion.js animates the draw-in as the
+         last beat of the hero timeline. Purely decorative: aria-hidden, and it
+         means nothing the copy above doesn't already say. -->
+    <figure class="hero-chart" aria-hidden="true">
+      <svg viewBox="0 0 1000 180" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="hcFillBt" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#C6F24E" stop-opacity="0.22"/>
+            <stop offset="1" stop-color="#C6F24E" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="hcFillLv" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E5484D" stop-opacity="0.20"/>
+            <stop offset="1" stop-color="#E5484D" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path class="hc-fill hc-fill-bt" fill="url(#hcFillBt)" d="M0,145.5L20,149.1L40,139.4L60,134.8L80,135.7L100,130.3L120,125L140,125.3L160,121.8L180,116.5L200,114.4L220,110.7L240,109L260,100.5L280,98.5L300,98.2L320,95L340,86L360,88.5L380,83.4L400,84.3L420,80.2L440,70.9L460,71.3L480,71.9L500,66.8L520,63.3L540,59.7L560,59.7L580,56.6L600,48.8L620,45.5L640,47L660,39.5L680,38L680,180L0,180Z"/>
+        <path class="hc-fill hc-fill-lv" fill="url(#hcFillLv)" d="M680,38L696,36.3L712,42.5L728,43.2L744,61.1L760,56.7L776,64.6L792,72L808,58.3L824,67.3L840,78.1L856,81.4L872,84.1L888,83.6L904,104.1L920,90L936,101.6L952,105.9L968,117.8L984,128.4L1000,124L1000,180L680,180Z"/>
+        <path class="hc-line hc-bt" fill="none" stroke="#C6F24E" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" d="M0,145.5L20,149.1L40,139.4L60,134.8L80,135.7L100,130.3L120,125L140,125.3L160,121.8L180,116.5L200,114.4L220,110.7L240,109L260,100.5L280,98.5L300,98.2L320,95L340,86L360,88.5L380,83.4L400,84.3L420,80.2L440,70.9L460,71.3L480,71.9L500,66.8L520,63.3L540,59.7L560,59.7L580,56.6L600,48.8L620,45.5L640,47L660,39.5L680,38"/>
+        <line class="hc-marker" x1="680" y1="8" x2="680" y2="180" stroke="#6B7480" stroke-width="1" stroke-dasharray="4 5"/>
+        <path class="hc-line hc-lv" fill="none" stroke="#E5484D" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" d="M680,38L696,36.3L712,42.5L728,43.2L744,61.1L760,56.7L776,64.6L792,72L808,58.3L824,67.3L840,78.1L856,81.4L872,84.1L888,83.6L904,104.1L920,90L936,101.6L952,105.9L968,117.8L984,128.4L1000,124"/>
+        <circle class="hc-dot" cx="680" cy="38" r="4" fill="#C6F24E" stroke="#08090B" stroke-width="2"/>
+      </svg>
+      <span class="hc-label hc-label-bt">backtest</span>
+      <span class="hc-label hc-label-lv">live</span>
+    </figure>
   </div>
 
   <div class="scroll-cue" aria-hidden="true"><span></span></div>

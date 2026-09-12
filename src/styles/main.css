@@ -66,6 +66,16 @@ button, input, textarea { font: inherit; color: inherit; }
 
 ::selection { background: var(--accent); color: var(--accent-ink); }
 
+/* Film grain. A 160px SVG-noise tile at 3.5% opacity over everything — it
+   is what stops large dark surfaces reading as flat vector fills. Fixed and
+   pointer-events:none, so it costs one composited layer and nothing else. */
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: 9990; pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
@@ -104,6 +114,7 @@ button, input, textarea { font: inherit; color: inherit; }
   line-height: 1.04;
   letter-spacing: -0.035em;
   max-width: 20ch;
+  text-wrap: balance;
 }
 
 .section-lede {
@@ -146,6 +157,15 @@ button, input, textarea { font: inherit; color: inherit; }
 .btn-block { width: 100%; }
 .btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
 
+/* Primary CTA glow — a soft lime halo that grows on hover. Reserved for the
+   hero and contact CTAs; putting it on every button makes none of them primary. */
+.btn-glow { box-shadow: 0 0 0 0 rgba(198,242,78,0), 0 6px 22px -8px rgba(198,242,78,0.35); }
+.btn-glow:hover { box-shadow: 0 0 0 4px rgba(198,242,78,0.14), 0 12px 34px -8px rgba(198,242,78,0.55); }
+
+/* Ghost buttons with a trailing arrow that nudges on hover. */
+.btn-arrow span { display: inline-block; transition: transform .3s var(--ease); margin-left: -2px; }
+.btn-arrow:hover span { transform: translateX(4px); }
+
 /* ==========================================================================
    HEADER
    ========================================================================== */
@@ -163,6 +183,15 @@ button, input, textarea { font: inherit; color: inherit; }
   padding-block: 11px;
 }
 .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+
+/* Reading progress: a 1px lime line along the header's bottom edge, scaled
+   on the x-axis by motion.js. transform-only, so it never triggers layout. */
+.progress {
+  position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: var(--accent); transform-origin: 0 50%; transform: scaleX(0);
+  opacity: 0; transition: opacity .35s;
+}
+.site-header.is-stuck .progress { opacity: 0.9; }
 
 .wordmark { display: inline-flex; align-items: center; gap: 11px; font-weight: 700; letter-spacing: -0.03em; font-size: 18px; }
 /* Brand mark — inline SVG injected at build time from config.js (brand.markSvg).
@@ -239,6 +268,13 @@ button, input, textarea { font: inherit; color: inherit; }
 .hero-title .line { display: block; overflow: hidden; padding-bottom: 0.06em; }
 .hero-title .line-i { display: block; }
 .hero-title .accent { color: var(--accent); }
+/* The third beat of the story turns red — the same red the chart strip below
+   uses for the live segment, so headline and chart read as one statement. */
+.hero-title .down { color: var(--neg); }
+
+/* Three-line variant: sized so the longest line ("Live: disappointing.") fits
+   one row from 390px up, and three rows don't push the CTAs below the fold. */
+.hero-title-3 { font-size: clamp(2.1rem, 8vw, 6.2rem); margin-bottom: 30px; }
 
 .hero-lede {
   font-size: clamp(1.04rem, 1.85vw, 1.34rem);
@@ -262,6 +298,31 @@ button, input, textarea { font: inherit; color: inherit; }
   background: var(--accent); flex: none;
 }
 
+/* The headline, drawn: backtest curve → "live" marker → red decline.
+   Sits under the hero points at full shell width. Every part starts hidden
+   under html.motion-ready and is brought in by the hero timeline in
+   motion.js; without JS (or with reduced motion) it simply shows complete. */
+.hero-chart {
+  position: relative;
+  margin: 58px 0 0;
+  height: clamp(110px, 14vw, 180px);
+  border-bottom: 1px solid var(--hairline);
+}
+.hero-chart svg { width: 100%; height: 100%; overflow: visible; }
+.hc-label {
+  position: absolute; top: -4px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.hc-label-bt { left: 0; }
+.hc-label-lv { left: 68%; padding-left: 10px; color: var(--neg); }
+
+html.motion-ready .hero-chart .hc-line,
+html.motion-ready .hero-chart .hc-fill,
+html.motion-ready .hero-chart .hc-marker,
+html.motion-ready .hero-chart .hc-dot,
+html.motion-ready .hero-chart .hc-label { opacity: 0; }
+
 .scroll-cue {
   position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%);
   width: 1px; height: 52px; background: var(--hairline-2); overflow: hidden;
@@ -272,7 +333,13 @@ button, input, textarea { font: inherit; color: inherit; }
 /* ==========================================================================
    CAPABILITY MARQUEE
    ========================================================================== */
-.strip { border-block: 1px solid var(--hairline); padding-block: 20px; overflow: hidden; }
+.strip {
+  border-block: 1px solid var(--hairline); padding-block: 20px; overflow: hidden;
+  /* Fade the ends so items emerge from and dissolve into the dark rather than
+     hard-clipping at the viewport edge. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
 .marquee { overflow: hidden; }
 .marquee-track {
   display: flex; align-items: center; gap: 26px; width: max-content;
@@ -322,6 +389,27 @@ button, input, textarea { font: inherit; color: inherit; }
 .card-fail .card-num { color: var(--neg); }
 .card-fail .card-list li::before { color: var(--neg); }
 .card p em { color: var(--text); font-style: italic; }
+
+/* ==========================================================================
+   SPOTLIGHT — cursor-tracked glow on card grids
+   motion.js adds .spot to each card and keeps --mx / --my updated on
+   pointermove. Pure paint work on a pseudo-element: no layout, no JS per
+   frame beyond two custom properties. Hidden entirely on touch devices,
+   where there is no cursor to track.
+   ========================================================================== */
+.spot { position: relative; overflow: hidden; }
+.spot::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  opacity: 0; transition: opacity .45s var(--ease);
+  background: radial-gradient(
+    460px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(198,242,78,0.085), rgba(57,135,229,0.04) 35%, transparent 60%
+  );
+}
+.spot > * { position: relative; z-index: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .spot:hover::before { opacity: 1; }
+}
 
 /* ==========================================================================
    WHO IT'S FOR
@@ -390,10 +478,17 @@ button, input, textarea { font: inherit; color: inherit; }
    REPORT
    ========================================================================== */
 .report {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: 18px;
   padding: clamp(22px, 3.6vw, 46px);
+}
+/* A lime hairline across the top edge — marks the report as the artefact
+   the rest of the page is talking about. */
+.report::before {
+  content: ''; position: absolute; left: 10%; right: 10%; top: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(198,242,78,0.7), transparent);
 }
 
 .sample-banner {
@@ -596,6 +691,17 @@ button, input, textarea { font: inherit; color: inherit; }
    ========================================================================== */
 .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(36px, 5vw, 74px); align-items: start; }
 
+/* Soft glow behind the form side so the conversion point reads as the
+   warmest spot on the page. */
+#contact { position: relative; overflow: hidden; }
+#contact::before {
+  content: ''; position: absolute; pointer-events: none; z-index: 0;
+  right: -10%; top: 10%; width: 60%; height: 90%;
+  background: radial-gradient(closest-side, rgba(198,242,78,0.09), transparent 70%);
+  filter: blur(20px);
+}
+#contact > .shell { position: relative; z-index: 1; }
+
 /* The three objections that stop a stranger sending you their edge, answered
    before the form rather than 80% down the page in an FAQ. */
 .trust-points {
@@ -764,6 +870,9 @@ button, input, textarea { font: inherit; color: inherit; }
    MOTION — hidden only once JS confirms it can animate them back in
    ========================================================================== */
 html.motion-ready .reveal { opacity: 0; transform: translateY(26px); }
+/* Section titles also arrive from a soft blur — a few elements only, so the
+   filter cost is negligible and the effect reads as focus rather than fade. */
+html.motion-ready .section-title.reveal { filter: blur(10px); }
 html.motion-ready .hero-title .line-i { transform: translateY(105%); }
 
 /* ==========================================================================
@@ -814,8 +923,11 @@ html.motion-ready .hero-title .line-i { transform: translateY(105%); }
   html { scroll-behavior: auto; }
   .marquee-track { animation: none; }
   .scroll-cue { display: none; }
-  html.motion-ready .reveal { opacity: 1; transform: none; }
+  html.motion-ready .reveal { opacity: 1; transform: none; filter: none; }
   html.motion-ready .hero-title .line-i { transform: none; }
+  html.motion-ready .hero-chart * { opacity: 1; }
+  .spot::before { display: none; }
+  body::after { display: none; }
 }
 
 /* ==========================================================================
@@ -823,7 +935,8 @@ html.motion-ready .hero-title .line-i { transform: translateY(105%); }
    ========================================================================== */
 @media print {
   .site-header, .hero, .strip, .scroll-cue, .form-wrap, .wa-card, .nav-toggle,
-  .spec-actions, .spec-copied, .footer-nav { display: none !important; }
+  .spec-actions, .spec-copied, .footer-nav, .progress { display: none !important; }
+  body::after, .spot::before, #contact::before { display: none !important; }
   body { background: #fff; color: #000; }
   .report, .spec-cta, .spec-eg, .spec-callout, .who { border-color: #ccc; background: #fff; }
   .reveal { opacity: 1 !important; transform: none !important; }
