@@ -1,27 +1,29 @@
 # ============================================================================
-#  GitHub Pages — PREVIEW deploy
+#  GitHub Pages — PRODUCTION deploy
 # ============================================================================
 #
-#  This publishes a preview copy of the landing page to
-#  https://<username>.github.io/<repo-name>/ on every push to main.
+#  taurusconsultancy.com points at GitHub Pages (custom domain set in the
+#  repo's Pages settings). This workflow builds the site on every push to
+#  main and publishes it. Merging to main IS deploying — there is no other
+#  production step.
 #
-#  IMPORTANT — this is NOT the production deploy. Production is Hostinger,
-#  built locally and uploaded. Two consequences, both handled below:
+#  Two things to know:
 #
-#    1. NOINDEX=1 is set for this build ONLY. It injects a robots noindex tag
-#       so the github.io copy never gets indexed and never competes with the
-#       real site in search results. The Hostinger build (plain `npm run
-#       build`) does NOT set it, so production stays indexable.
+#    1. This is an INDEXABLE build. Do not set NOINDEX here. That flag exists
+#       for throwaway previews (`npm run build:preview`); it was set on this
+#       job while Pages was preview-only, and once the real domain moved
+#       here it deindexed the live site. Blog drafts are handled per page
+#       instead (`draft: true` in a post's frontmatter → that page alone gets
+#       noindex and stays out of the sitemap).
 #
 #    2. No `base` override is needed. vite.config.js uses base: './', which
-#       emits relative asset paths that work at any URL depth — the Pages
-#       subpath AND the Hostinger root, from the same source. Do not change it
-#       to '/<repo-name>/' or the Hostinger build will 404 every asset.
+#       emits relative asset paths that work at any URL depth. Leave it.
 #
-#  One-time repo setup: Settings → Pages → Source: "GitHub Actions".
+#  One-time repo setup: Settings → Pages → Source: "GitHub Actions", and the
+#  custom domain entered in the same screen.
 # ============================================================================
 
-name: Deploy preview to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -56,9 +58,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build (preview — noindex)
-        env:
-          NOINDEX: '1'
+      # Renders content/blog/ → blog/, validates every post, then bundles.
+      # A post that fails frontmatter validation or the wording lint fails
+      # this step, and nothing is deployed.
+      - name: Build (production — indexable)
         run: npm run build
 
       # Belt-and-braces: stops GitHub's Jekyll layer touching the output.

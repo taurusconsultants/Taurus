@@ -1,0 +1,57 @@
+# ============================================================================
+#  Pull request check
+# ============================================================================
+#
+#  Runs the full build on every pull request. It does NOT deploy anything.
+#
+#  For blog posts this is the machine half of the review: frontmatter
+#  validation, unknown-author check, and the wording lint that enforces the
+#  testing-and-reporting-only rule all run inside `npm run build`. A red check
+#  here means the post cannot merge until it is fixed. The human half is the
+#  required review on main — see CONTRIBUTING.md.
+#
+#  The built site is attached to the run as an artifact so a reviewer can
+#  download and open it locally if they want to see the rendered post.
+# ============================================================================
+
+name: Check pull request
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (validates every post)
+        run: npm run build
+
+      - name: List posts
+        run: npm run blog:check
+
+      - name: Upload built site for reviewers
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-preview
+          path: dist
+          retention-days: 7

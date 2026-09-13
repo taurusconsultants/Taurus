@@ -2,9 +2,15 @@
 node_modules/
 
 # Build output — produced by `npm run build`, never committed.
-# GitHub Pages builds it in CI; Hostinger gets it uploaded from your machine.
+# GitHub Actions builds it on every push to main and deploys it to Pages.
 dist/
 brand/
+
+# Generated blog pages at the repo ROOT only (leading slash matters — a bare
+# "blog/" would also ignore content/blog/, the committed source).
+# scripts/build-blog.mjs renders content/blog/**/index.md into /blog/ on
+# every build and dev start.
+/blog/
 
 # Local env / secrets
 .env

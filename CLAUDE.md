@@ -13,10 +13,15 @@ This file is the source of truth for project state, decisions, and constraints.
 
 ## Current Status
 
-**Last updated:** 2026-09-12
+**Last updated:** 2026-09-13
 
-**Phase:** Site built and restructured for conversion. Not yet live on production.
+**Phase:** Site is **live at taurusconsultancy.com, served by GitHub Pages** (discovered
+2026-09-13 — DNS already pointed there; Hostinger was never used). Blog pipeline built.
 Blockers before any paid traffic: untested lead form, no analytics.
+
+> ⚠ Until the changes of 2026-09-13 are pushed, the live site is still being built with
+> `NOINDEX=1` and carries a `noindex, nofollow` tag on every page. The fix is in
+> `.github/workflows/deploy.yml`; it takes effect on the next push to `main`.
 
 ### Done
 - [x] Business model, positioning, and legal constraints defined
@@ -55,7 +60,19 @@ Blockers before any paid traffic: untested lead form, no analytics.
 - [x] **Lead magnet shipped** — `/spec-template/`, ungated. See [Lead Magnet](#lead-magnet).
 - [x] Response-time promise tokenised as `brand.responseTime` ("within 24 hours").
 
+- [x] **Blog pipeline built (2026-09-13)** — Markdown in `content/blog/`, rendered at
+      build time; PR-based publishing for five authors; wording lint; drafts; RSS;
+      per-post structured data; CONTRIBUTING.md. See [Blog](#blog). One seed post live.
+- [x] **Production deploy = GitHub Pages on push to `main`.** `NOINDEX=1` removed from
+      the deploy workflow. PR check workflow added (`.github/workflows/check.yml`).
+
 ### Pending
+- [ ] **Push the 2026-09-13 changes** so the live site stops being noindexed and the
+      blog goes live. Then: Settings → Branches → protect `main` (require a PR + 1
+      approval), add the four other authors as collaborators, name the compliance
+      reviewer here.
+- [ ] **Authors' real names** — `src/authors.js` has only the `taurus` team byline.
+      Each author adds themselves in the PR that carries their first post.
 - [ ] **Test the lead form end to end** — submit it once and confirm the email arrives.
       Still the single biggest launch blocker: untested + no analytics means we could
       lose every form lead and never know.
@@ -64,12 +81,13 @@ Blockers before any paid traffic: untested lead form, no analytics.
       `src/spec.js`); it is dormant only because the IDs are blank.
 - [ ] **Move email off Gmail** to `hello@taurusconsultancy.com` once mail is set up.
       A gmail.com address next to a premium page is a live credibility cost.
-- [ ] Point DNS at the host and build + deploy to Hostinger — Pages is preview only.
 - [ ] Replace the dummy sample report with authentic, client-authorised results.
 - [ ] **People / founder proof** — deliberately deferred by the user (2026-09-12).
-      Still the largest remaining trust gap: the page has no named human on it.
-- [ ] **Blog** — agreed in principle, scheduled for a later phase. The competitor's
-      only real moat is ~30k words of technical content; see [Competitive Position](#competitive-position).
+      Still the largest remaining trust gap: the page has no named human on it. Blog
+      bylines (`src/authors.js`) are the agreed first step.
+- [ ] **Blog content** — pipeline exists; the writing is the work now. Competitor's only
+      real moat is ~30k words; see [Competitive Position](#competitive-position).
+      Phase 3 items when a post needs them: per-post OG image, tag/author pages.
 
 ### Open Questions (need user input)
 - **Real sample report** — user will supply later. Full-depth dummy in place until then.
@@ -198,8 +216,9 @@ portfolio. Therefore:
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Build tooling | **Vite** | Static output; upload `dist/` to Hostinger |
-| Hosting | **Hostinger shared hosting** | Static files via File Manager or FTP |
+| Build tooling | **Vite** | Static output; `dist/` built and deployed by GitHub Actions |
+| Hosting | **GitHub Pages** (custom domain) | Was planned as Hostinger; DNS was pointed at Pages instead. See [Deployment](#deployment) |
+| Blog | **Markdown → HTML at build time** | `content/blog/`, rendered by `scripts/build-blog.mjs`. See [Blog](#blog) |
 | Motion | **Hybrid: one WebGL hero + GSAP/CSS below** | ~250KB budget; static fallback required |
 | Styling | TBD | Decide at scaffold time |
 | Lead capture | **WhatsApp deep link + 3-field form** | See below |
@@ -248,35 +267,33 @@ at a glance which channel the lead actually left.
 
 ## Deployment
 
-**Two targets, one codebase, one `dist/`.**
+**Production is GitHub Pages. Merging to `main` is deploying.**
 
-| Target | Purpose | Command | Indexed? |
-|---|---|---|---|
-| **Hostinger** | **Production** | `npm run build`, upload `dist/` | Yes |
-| **GitHub Pages** | Preview / sharing | Automatic on push to `main` | **No** |
+| What | How |
+|---|---|
+| Repo | `github.com/taurusconsultants/Taurus`, public, default branch `main` |
+| Domain | `taurusconsultancy.com` → GitHub Pages IPs; `www` CNAME → `taurusconsultants.github.io`. Custom domain is set in Settings → Pages (no `CNAME` file in `public/`). |
+| Deploy | `.github/workflows/deploy.yml` — on push to `main`: `npm ci`, `npm run build`, upload `dist/`, deploy. Live in ~2 minutes. |
+| PR check | `.github/workflows/check.yml` — on pull request: full build (validates every post), attaches `dist/` as a downloadable artifact. Never deploys. |
+| Hostinger | **Not used.** Was the plan; DNS went to Pages instead (2026-09-13). Only relevant if mail is hosted there. |
 
 ### Why `base: './'` must not change
 
-`vite.config.js` sets `base: './'`, emitting **relative** asset paths (`./assets/…`).
-That single setting is what lets the same build work at both the GitHub Pages subpath
-(`username.github.io/repo-name/`) and the Hostinger document root.
+`vite.config.js` sets `base: './'`, emitting **relative** asset paths. That is what lets
+the same build work at the domain root, a github.io project subpath, or a local
+`file://` preview. Do not change it to `/<repo-name>/` — it would pin the build to one
+path and break the custom-domain deploy.
 
-> **Do not change this to `/<repo-name>/`.** It is the standard GitHub Pages advice and
-> it is wrong for this project: it pins the build to one GitHub path, and the identical
-> `dist/` would then 404 every asset on Hostinger. Relative paths already solve it.
+### The noindex flag — history and current rule
 
-### The noindex flag
+`npm run build:preview` sets `NOINDEX=1`, which injects `<meta name="robots"
+content="noindex, nofollow">` on every page and emits a `Disallow: /` robots.txt.
+It exists for throwaway previews only.
 
-The preview must not be indexed, or a github.io copy competes with the real site in
-search results. This is an **environment flag, not a config value** — deliberately:
-
-```
-npm run build           # production — indexable
-npm run build:preview   # NOINDEX=1 — injects <meta name="robots" content="noindex, nofollow">
-```
-
-If noindex lived in `src/config.js`, it would travel with the build to Hostinger and
-deindex production. The Pages workflow sets `NOINDEX=1`; nothing else does.
+**It was set on the Pages deploy job while Pages was preview-only, and stayed set after
+the real domain was pointed at Pages — so production shipped noindexed.** Found and
+removed 2026-09-13. The deploy workflow must never set `NOINDEX`. Unpublished blog
+posts are handled per page instead (`draft: true`), not with a site-wide flag.
 
 ### Files that are generated, not committed
 
@@ -298,11 +315,11 @@ cannot do that. `dist/` is the only place they exist.
 - `public/.nojekyll` stops GitHub's Jekyll layer processing the output; the workflow
   also `touch`es it as a fallback.
 
-### Canonical URL caveat
+### Canonical URLs
 
-`brand.url` is still the placeholder `taurusconsultants.com`. Canonical/OG tags point
-there. That is correct while Pages is preview-only, but **update `brand.url` the moment
-the real domain is registered**, or link previews and canonical tags point at nothing.
+`brand.url` is `https://taurusconsultancy.com` (real, registered, live). Canonical, OG,
+sitemap, RSS and structured-data URLs are all derived from it. Superseded note: earlier
+drafts of this file carried the placeholder `taurusconsultants.com`.
 
 ---
 
@@ -345,29 +362,78 @@ string in `src/config.js` (`brand.markSvg` + `brand.markViewBox`).
 index.html                  Landing page — all copy lives in the markup, with
                             {{brand.*}} tokens substituted at build time
 spec-template/index.html    Lead magnet page (see below)
+content/blog/<slug>/        BLOG SOURCE — index.md + images, one folder per post
+blog/                       GENERATED from content/blog/ on every build; gitignored
 public/                     Copied verbatim to dist/: og.png, icon-*.png,
                             apple-touch-icon.png, 404.html, .nojekyll
 scripts/make-images.mjs     Regenerates the raster brand images from config
+scripts/build-blog.mjs      Markdown → HTML: frontmatter validation, wording lint,
+                            Shiki highlighting, KaTeX, FAQ split, reading time
+scripts/new-post.mjs        `npm run new-post -- "Title"` scaffolds a draft
+CONTRIBUTING.md             The authors' end-to-end guide. Keep it in step with
+                            build-blog.mjs — it is what non-developers read.
 src/
   config.js                 SINGLE SOURCE OF TRUTH for brand, form, analytics,
                             motion and report flags
+  authors.js                Blog bylines, keyed; a post's `author:` must match
+  templates/post.html       Post layout ({{post.*}} filled by the generator,
+  templates/blog-index.html {{brand.*}} left for the Vite plugin)
   main.js                   Landing-page entry (report → hero → motion → form)
   spec.js                   Spec-template entry — CSS + clipboard/print only,
                             deliberately does NOT pull in GSAP/Lenis/WebGL
+  blog.js                   Blog entry — CSS + KaTeX CSS + copy-code button only
   js/hero.js                WebGL hero shader, with static CSS fallback
   js/motion.js              GSAP ScrollTrigger reveals, counters, Lenis
   js/form.js                Lead form; `validate()` exported for unit testing
   js/report.js              Hand-rolled inline-SVG report renderer, no chart lib
   data/report-data.js       Seeded synthetic dataset + all analytics maths
   styles/main.css           One stylesheet, design tokens at the top
-vite.config.js              Token substitution, build guards, structured data,
-                            robots.txt / sitemap.xml / site.webmanifest emission,
-                            multi-page entry points (PAGES)
+vite.config.js              ASYNC config: runs build-blog first, then token
+                            substitution, build guards, structured data,
+                            robots.txt / sitemap.xml / site.webmanifest / RSS
+                            emission, multi-page entry points (STATIC_PAGES + posts)
 ```
 
-**Adding a page** means adding one row to `PAGES` in `vite.config.js`. That single
-list drives the Rollup entry points, `sitemap.xml`, and the per-page canonical URL —
-if they were maintained separately they would drift and we'd sitemap a 404.
+**Adding a static page** means adding one row to `STATIC_PAGES` in `vite.config.js`.
+**Adding a blog post** means adding a folder under `content/blog/`. Together they
+drive the Rollup entry points, `sitemap.xml`, and the per-page canonical URL — if they
+were maintained separately they would drift and we'd sitemap a 404.
+
+### Blog
+
+Five people write for it. The pipeline is designed so none of them needs the build
+system; the full author-facing process is in `CONTRIBUTING.md` and is not repeated
+here. What Claude needs to know:
+
+- **Source** is `content/blog/<slug>/index.md` with YAML frontmatter (`title`,
+  `description`, `date`, `author`, `tags`, optional `draft`, `updated`). The folder
+  name is the URL. Images sit beside the file and are referenced relatively; Vite
+  hashes them into `assets/`.
+- **`vite.config.js` is async** and calls `buildBlog()` first. It renders every post
+  into `blog/<slug>/index.html` (plus `blog/index.html`) using `src/templates/`, then
+  hands the post manifest back so posts become entry points, sitemap rows, RSS items
+  and BlogPosting / BreadcrumbList / FAQPage structured data. In dev, a watcher
+  regenerates on any change under `content/blog/` or `src/templates/`.
+- **The build fails** on: missing frontmatter field, unknown author key, invalid slug,
+  or a **hard wording violation** (`HARD_PATTERNS` in `scripts/build-blog.mjs`:
+  guaranteed returns, "you should buy", price targets, etc.). Soft patterns warn.
+  Code blocks and maths are stripped before linting. This is the machine half of the
+  positioning rule; the human half is the required PR review.
+- **Drafts** (`draft: true`) build and get a URL, but: page carries `noindex`, no
+  sitemap row, no feed item, no listing card, no structured data. Flipping the flag is
+  what publishes. There is no separate preview site any more.
+- **FAQ**: a trailing `## FAQ` with `###` questions is split out, rendered as
+  `<details class="faq-item">` (same styling as the landing page) and emitted as
+  FAQPage schema from the same list.
+- **Body `{{` is escaped** to `&#123;&#123;` so Jinja/Go-template snippets in code can't
+  be mistaken for brand tokens by the Vite plugin.
+- **Charts are images** (decided 2026-09-13). No chart DSL; authors export SVG/PNG.
+- **Maths** is KaTeX rendered at build time; `src/blog.js` imports the KaTeX CSS so
+  the fonts are bundled. No maths JS is shipped.
+- **Highlighting** is Shiki at build time, theme `github-dark-default`, background
+  overridden to `var(--surface)` in CSS. Language list is in `getMarkdown()`; add one
+  there if a post needs it.
+- **`npm run blog:check`** validates every post without building the site.
 
 ### Sample Report
 
@@ -418,10 +484,11 @@ reserved box** — that's why the Monte Carlo legend has its own `#mcLegend` slo
 
 | Artefact | Where it comes from |
 |---|---|
-| `sitemap.xml` | Emitted from `PAGES`. Production build only. |
+| `sitemap.xml` | Emitted from `STATIC_PAGES` + published posts (draft posts excluded; `lastmod` = post `updated`/`date`). Production build only. |
+| `blog/feed.xml` | RSS 2.0, emitted from published posts. |
 | `robots.txt` | Emitted. `Allow: /` + sitemap on production; `Disallow: /` on preview. |
 | `site.webmanifest` | Emitted from `brand.*` so a rename stays a one-file edit. |
-| JSON-LD | Injected per page: WebSite + Organization + WebPage, plus ProfessionalService + FAQPage on the landing page. Production build only. |
+| JSON-LD | Injected per page: WebSite + Organization + WebPage, plus ProfessionalService + FAQPage on the landing page, Blog on `/blog/`, BlogPosting + Person + BreadcrumbList (+ FAQPage) on each post. Production build only; skipped on drafts. |
 | `og.png`, icons | `node scripts/make-images.mjs` — rasterised from `brand.markSvg` by headless Chrome. Committed under `public/`. |
 | `404.html` | `public/404.html`, deliberately self-contained. |
 
@@ -675,6 +742,40 @@ competitor — they sell an observability **platform** to mid-size quant teams; 
 - 2026-09-12: **Response time promised explicitly** ("within 24 hours") as
   `brand.responseTime`, surfaced in the hero, contact block, form and FAQ. Vagueness
   ("we reply to every enquiry") reduces the cost of contacting by nothing.
+- 2026-09-13: **Found production noindexed.** `taurusconsultancy.com` had been pointed
+  at GitHub Pages (not Hostinger as this file assumed), but the Pages workflow still
+  built with `NOINDEX=1` from its preview-only days, so every live page carried
+  `noindex, nofollow`. Removed the flag from `deploy.yml`; Pages is now the documented
+  production target and Hostinger is dropped. Lesson recorded in Deployment: the
+  deploy workflow must never set `NOINDEX`.
+- 2026-09-13: **Blog built as Markdown-in-repo rendered at build time**, not
+  WordPress (second stack, breaks brand tokenisation), not an Astro migration (rewrite
+  of a finished page for no visible gain), not a headless CMS (needs an OAuth gateway;
+  revisit only if authors stall on GitHub). Benchmarked referentiallabs.com first:
+  their repo is *built output only*, one author pushing "Update site" — a one-person
+  process we deliberately did not copy. Their post *anatomy* was copied: problem →
+  method with code → summary table → honest limits → how it shows up in our work →
+  FAQ, with a real byline.
+- 2026-09-13: **Publishing is a pull request with a required review.** Five authors
+  under one hard positioning rule needs a gate that is a person, not a lint. The lint
+  (`HARD_PATTERNS`) exists to fail obvious violations before a human reads them, not
+  to replace the read. Branch per post, never a shared staging branch.
+- 2026-09-13: **Drafts are per-page, not per-site.** With Pages now production, the
+  old "preview build includes drafts" idea died. `draft: true` builds an unlisted,
+  noindexed page with a real URL — authors share it for feedback, and flipping the
+  flag publishes. Simpler than a second Pages site and needs nothing extra.
+- 2026-09-13: **Charts are images.** Authors export SVG/PNG into the post folder. A
+  chart-from-data block was considered and rejected for phase 1: more build surface
+  for a narrower set of chart types than matplotlib gives for free.
+- 2026-09-13: **Maths and highlighting at build time** (KaTeX, Shiki). The reader gets
+  HTML and one CSS file; the blog entry ships ~0.5 KB of JS (a copy button).
+- 2026-09-13: **Seed post** "Why we resample blocks of trades, not single trades" —
+  the Monte Carlo block-bootstrap argument already in this file, written up as the
+  first article. Its chart is generated from a seeded synthetic series with regime
+  clustering (i.i.d. worst-5% DD −20.3% vs block −26.3%, actual −13.3%), labelled
+  illustrative. Bylined `taurus` until real author names are supplied.
+- 2026-09-13: **`.gitignore` uses `/blog/`, not `blog/`.** The bare pattern also
+  matched `content/blog/` and would have silently kept every post out of git.
 - 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
   model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
   feature stability). Kept inside the hard positioning rule: we assess a client-supplied

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blog — {{brand.name}}</title>
+<meta name="description" content="How trading strategies are tested, and how backtests fail. Written by the people who run the tests. No signals, no tips, no market calls." />
+
+<link rel="canonical" href="{{brand.url}}/blog/" />
+<link rel="alternate" type="application/rss+xml" title="{{brand.name}} blog" href="{{brand.url}}/blog/feed.xml" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="{{brand.name}}" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="{{brand.url}}/blog/" />
+<meta property="og:title" content="Blog — {{brand.name}}" />
+<meta property="og:description" content="How trading strategies are tested, and how backtests fail. Written by the people who run the tests." />
+<meta property="og:image" content="{{brand.url}}/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Blog — {{brand.name}}" />
+<meta name="twitter:description" content="How trading strategies are tested, and how backtests fail." />
+<meta name="twitter:image" content="{{brand.url}}/og.png" />
+<meta name="theme-color" content="#08090B" />
+
+<!-- Critical CSS — see the note in index.html. -->
+<style>
+  html{background:#08090B;color:#F4F6F8}
+  body{margin:0;background:#08090B}
+  .wordmark-mark{width:25px;height:25px}
+  .skip{position:absolute;left:-9999px}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="{{brand.faviconDataUri}}" />
+<link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+<link rel="manifest" href="../site.webmanifest" />
+</head>
+<body class="blog-page">
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header is-stuck">
+  <div class="shell header-inner">
+    <a class="wordmark" href="../" aria-label="{{brand.name}} home">
+      {{brand.mark}}
+      <span class="wordmark-text">{{brand.name}}</span>
+    </a>
+    <nav class="site-nav blog-nav" aria-label="Primary">
+      <a href="../#report">Sample report</a>
+      <a href="../#process">Process</a>
+      <a href="../spec-template/">Spec template</a>
+      <a href="../#faq">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="btn btn-sm btn-primary" href="../#contact">Start a project</a>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="blog-main">
+  <div class="shell">
+    <header class="blog-head">
+      <p class="eyebrow">Blog · {{blog.count}} published</p>
+      <h1 class="blog-title">Where backtests break.</h1>
+      <p class="blog-lede">
+        Notes from testing other people's strategies: the failure modes we see most, the
+        methods that catch them, and the diagnostics that separate a real edge from a lucky
+        parameter. Written by the people who run the tests.
+      </p>
+      <p class="blog-lede blog-fine">
+        No signals, no tips, no market calls — we test what clients specify and report what we
+        find. <a href="./feed.xml">RSS</a>
+      </p>
+    </header>
+
+    <div class="post-list">
+{{blog.list}}
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-top">
+      <div class="footer-brand">
+        {{brand.mark}}
+        <span class="wordmark-text">{{brand.name}}</span>
+        <p>{{brand.tagline}}</p>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="../">Home</a>
+        <a href="../#report">Sample report</a>
+        <a href="../#process">Process</a>
+        <a href="../spec-template/">Spec template</a>
+        <a href="../#faq">FAQ</a>
+        <a href="../#contact">Contact</a>
+      </nav>
+    </div>
+
+    <div class="disclaimer">
+      <h2>Important disclaimer</h2>
+      <p>
+        <strong>{{brand.name}}</strong> provides strategy <strong>testing and reporting</strong>
+        services only. We test and report on strategies specified by the client. We do not
+        provide investment advice, portfolio management, or trade recommendations. Nothing on
+        this website constitutes a recommendation to buy, sell or hold any financial instrument.
+        Trading involves substantial risk of loss, including loss of principal.
+      </p>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© {{site.year}} {{brand.name}}</p>
+      <p><a href="mailto:{{brand.email}}">{{brand.email}}</a></p>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/src/blog.js"></script>
+</body>
+</html>

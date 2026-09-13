@@ -2,19 +2,24 @@ import { defineConfig } from 'vite';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { brand, analytics, form as formCfg } from './src/config.js';
+import { buildBlog } from './scripts/build-blog.mjs';
 
 const root = dirname(fileURLToPath(import.meta.url));
 
 /**
- * Every indexable page, in one place.
+ * Every hand-written page, in one place.
  *
- * This list drives THREE things: the Rollup entry points, sitemap.xml, and the
- * per-page canonical/OG URLs. Adding a page means adding one row here — if the
- * three ever disagree, search engines index something that doesn't exist.
+ * Together with the blog posts (generated from content/blog/ at build time)
+ * this list drives THREE things: the Rollup entry points, sitemap.xml, and the
+ * per-page canonical/OG URLs. Adding a static page means adding one row here;
+ * adding a blog post means adding a folder under content/blog/. If the three
+ * outputs were maintained separately, search engines would eventually be
+ * handed a URL that doesn't build.
  */
-const PAGES = [
+const STATIC_PAGES = [
   { route: '/', file: 'index.html', priority: '1.0', changefreq: 'weekly' },
   { route: '/spec-template/', file: 'spec-template/index.html', priority: '0.8', changefreq: 'monthly' },
+  { route: '/blog/', file: 'blog/index.html', priority: '0.8', changefreq: 'weekly' },
 ];
 
 const isPreview = process.env.NOINDEX === '1';
@@ -25,8 +30,15 @@ const isPreview = process.env.NOINDEX === '1';
  * index.html is written with {{brand.name}} style placeholders. They are
  * replaced here, at build time, from src/config.js — so a rename is a
  * one-file edit with zero runtime cost and no flash of unbranded content.
+ *
+ * @param {object} site
+ * @param {Array}  site.pages   every page that builds (drafts included)
+ * @param {Array}  site.indexable  pages that go in the sitemap (no drafts)
+ * @param {Array}  site.posts   blog post metadata from the generator
+ * @param {string} site.contentDir  watched in dev so edits regenerate
  */
-function brandTokens() {
+function brandTokens(site) {
+  const { pages: PAGES, indexable, posts, contentDir } = site;
   // Guard: a WhatsApp number without its country code produces a wa.me link
   // that fails silently — the visitor sees "phone number shared via url is
   // invalid" and the lead is lost with no error anywhere. Cheap to check,
@@ -121,9 +133,12 @@ function brandTokens() {
         // Structured data, built from the page's own markup so it cannot drift
         // away from what a visitor actually reads. Skipped on preview builds —
         // there is no value in handing a search engine rich data for a page it
-        // has also been told not to index.
-        if (!isPreview) {
-          const ld = structuredData(ctx.path || '/', out);
+        // has also been told not to index. Draft posts are noindex too, so
+        // they are skipped for the same reason.
+        const path = ctx.path || '/';
+        const post = posts.find((p) => `/${p.file}` === path || p.file === path.replace(/^\//, ''));
+        if (!isPreview && !(post && post.draft)) {
+          const ld = structuredData(path, out, PAGES, post);
           if (ld) tags.push(`<script type="application/ld+json">${ld}</script>`);
         }
 
@@ -144,6 +159,33 @@ function brandTokens() {
 
         return out;
       },
+    },
+
+    /**
+     * Dev only: regenerate the blog when a post or template changes, then
+     * reload. Without this an author editing index.md would see nothing until
+     * they restarted the dev server.
+     */
+    configureServer(server) {
+      const templateDir = resolve(root, 'src/templates');
+      server.watcher.add([contentDir, templateDir]);
+      let timer;
+      const onChange = (file) => {
+        if (!file.startsWith(contentDir) && !file.startsWith(templateDir)) return;
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          try {
+            await buildBlog({ quiet: true });
+            server.ws.send({ type: 'full-reload' });
+          } catch (e) {
+            console.error(e.message);
+            server.ws.send({ type: 'error', err: { message: e.message, stack: '' } });
+          }
+        }, 80);
+      };
+      server.watcher.on('change', onChange);
+      server.watcher.on('add', onChange);
+      server.watcher.on('unlink', onChange);
     },
 
     /**
@@ -187,14 +229,49 @@ function brandTokens() {
         ),
       });
 
+      // RSS — published posts only. Emitted on preview builds too, so a
+      // reader can be checked before launch; the URLs inside are canonical.
+      const published = posts.filter((p) => !p.draft);
+      const items = published
+        .map(
+          (p) =>
+            `    <item>\n` +
+            `      <title>${xml(p.title)}</title>\n` +
+            `      <link>${brand.url}${p.route}</link>\n` +
+            `      <guid isPermaLink="true">${brand.url}${p.route}</guid>\n` +
+            `      <description>${xml(p.description)}</description>\n` +
+            `      <pubDate>${new Date(`${p.date}T09:00:00Z`).toUTCString()}</pubDate>\n` +
+            `      <author>${xml(p.author.name)}</author>\n` +
+            p.tags.map((t) => `      <category>${xml(t)}</category>\n`).join('') +
+            `    </item>`
+        )
+        .join('\n');
+      this.emitFile({
+        type: 'asset',
+        fileName: 'blog/feed.xml',
+        source:
+          `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n` +
+          `  <channel>\n` +
+          `    <title>${xml(brand.name)} — Blog</title>\n` +
+          `    <link>${brand.url}/blog/</link>\n` +
+          `    <atom:link href="${brand.url}/blog/feed.xml" rel="self" type="application/rss+xml" />\n` +
+          `    <description>How trading strategies are tested, and how backtests fail.</description>\n` +
+          `    <language>en</language>\n` +
+          `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n` +
+          `${items}\n` +
+          `  </channel>\n` +
+          `</rss>\n`,
+      });
+
       if (isPreview) return;
 
       const today = new Date().toISOString().slice(0, 10);
-      const urls = PAGES.map(
+      const urls = indexable.map(
         (p) =>
           `  <url>\n` +
           `    <loc>${brand.url}${p.route}</loc>\n` +
-          `    <lastmod>${today}</lastmod>\n` +
+          `    <lastmod>${p.lastmod || today}</lastmod>\n` +
           `    <changefreq>${p.changefreq}</changefreq>\n` +
           `    <priority>${p.priority}</priority>\n` +
           `  </url>`
@@ -210,6 +287,13 @@ function brandTokens() {
     },
   };
 }
+
+const xml = (s) =>
+  String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
 /* ────────────────────────────────────────────────────────────────────────────
    STRUCTURED DATA
@@ -245,10 +329,11 @@ function faqFromHtml(html) {
   return out;
 }
 
-function structuredData(path, html) {
+function structuredData(path, html, PAGES, post) {
   const isHome = path === '/' || path === '/index.html';
   const page = PAGES.find((p) => p.file === path.replace(/^\//, '')) || PAGES[0];
   const pageUrl = `${brand.url}${page.route}`;
+  const isBlogIndex = page.route === '/blog/';
 
   const org = {
     '@type': 'Organization',
@@ -316,32 +401,114 @@ function structuredData(path, html) {
     }
   }
 
+  if (isBlogIndex) {
+    graph.push({
+      '@type': 'Blog',
+      '@id': `${brand.url}/blog/#blog`,
+      url: `${brand.url}/blog/`,
+      name: `${brand.name} — Blog`,
+      publisher: { '@id': `${brand.url}/#organization` },
+      inLanguage: 'en',
+    });
+  }
+
+  // A post: BlogPosting with a real Person as author, breadcrumbs, and the
+  // FAQ (if the post has one) from the same list the page was rendered from.
+  if (post) {
+    const author = post.author.url
+      ? { '@type': 'Person', name: post.author.name, url: post.author.url, jobTitle: post.author.role || undefined }
+      : { '@type': 'Person', name: post.author.name, jobTitle: post.author.role || undefined };
+
+    graph.push({
+      '@type': 'BlogPosting',
+      '@id': `${pageUrl}#article`,
+      headline: post.title,
+      description: post.description,
+      url: pageUrl,
+      mainEntityOfPage: { '@id': `${pageUrl}#webpage` },
+      isPartOf: { '@id': `${brand.url}/blog/#blog` },
+      datePublished: post.date,
+      dateModified: post.updated,
+      author,
+      publisher: { '@id': `${brand.url}/#organization` },
+      image: `${brand.url}/og.png`,
+      keywords: post.tags.join(', ') || undefined,
+      wordCount: post.wordCount,
+      inLanguage: 'en',
+    });
+
+    graph.push({
+      '@type': 'BreadcrumbList',
+      '@id': `${pageUrl}#breadcrumbs`,
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${brand.url}/` },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${brand.url}/blog/` },
+        { '@type': 'ListItem', position: 3, name: post.title, item: pageUrl },
+      ],
+    });
+
+    if (post.faq.length) {
+      graph.push({
+        '@type': 'FAQPage',
+        '@id': `${pageUrl}#faq`,
+        mainEntity: post.faq.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      });
+    }
+  }
+
   // </script> inside JSON would close the tag early; nothing else needs escaping.
   return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })
     .replace(/<\/script/gi, '<\\/script');
 }
 
-export default defineConfig({
-  // Relative paths so the build works from any directory on Hostinger —
-  // document root, a subfolder, or a staging path.
-  base: './',
-  plugins: [brandTokens()],
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    target: 'es2018',
-    cssMinify: true,
-    rollupOptions: {
-      input: Object.fromEntries(
-        PAGES.map((p) => [p.file.replace(/\/?index\.html$/, '') || 'main', resolve(root, p.file)])
-      ),
-      output: {
-        manualChunks: undefined,
-        entryFileNames: 'assets/[name].[hash].js',
-        chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]',
+export default defineConfig(async () => {
+  // Render content/blog/*.md → blog/**/index.html first, so the posts exist
+  // on disk as ordinary HTML entry points by the time Rollup looks for them.
+  // A post that fails validation or the wording lint throws here and stops
+  // the build — nothing half-checked can reach production.
+  const { posts, contentDir } = await buildBlog();
+
+  const postPages = posts.map((p) => ({
+    route: p.route,
+    file: p.file,
+    priority: '0.6',
+    changefreq: 'monthly',
+    lastmod: p.updated,
+    draft: p.draft,
+  }));
+
+  // Drafts BUILD (they need a URL to be reviewed at) but are not INDEXED:
+  // no sitemap entry, no structured data, and the page itself carries
+  // noindex. Flipping `draft: false` is what publishes.
+  const pages = [...STATIC_PAGES, ...postPages];
+  const indexable = pages.filter((p) => !p.draft);
+
+  return {
+    // Relative paths so the same build works at the site root, in a
+    // subfolder, or on a github.io project path.
+    base: './',
+    plugins: [brandTokens({ pages, indexable, posts, contentDir })],
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      target: 'es2018',
+      cssMinify: true,
+      rollupOptions: {
+        input: Object.fromEntries(
+          pages.map((p) => [p.file.replace(/\/?index\.html$/, '').replace(/\//g, '-') || 'main', resolve(root, p.file)])
+        ),
+        output: {
+          manualChunks: undefined,
+          entryFileNames: 'assets/[name].[hash].js',
+          chunkFileNames: 'assets/[name].[hash].js',
+          assetFileNames: 'assets/[name].[hash].[ext]',
+        },
       },
     },
-  },
-  server: { port: 5173, open: true },
+    server: { port: 5173, open: true },
+  };
 });

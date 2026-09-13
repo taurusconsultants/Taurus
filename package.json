@@ -8,9 +8,17 @@
     "dev": "vite",
     "build": "vite build",
     "build:preview": "NOINDEX=1 vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "new-post": "node scripts/new-post.mjs",
+    "blog:check": "node scripts/build-blog.mjs"
   },
   "devDependencies": {
+    "@shikijs/markdown-it": "^4.4.3",
+    "@vscode/markdown-it-katex": "^1.1.2",
+    "gray-matter": "^4.0.3",
+    "katex": "^0.18.7",
+    "markdown-it": "^15.0.2",
+    "shiki": "^4.4.3",
     "vite": "^5.4.10"
   },
   "dependencies": {
