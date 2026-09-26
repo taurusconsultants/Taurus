@@ -4,7 +4,7 @@ description: "A single option premium is built from three separate forces, and t
 date: 2026-09-26
 author: taurus
 tags: [options, volatility, option-valuation, model-evaluation]
-draft: true
+draft: false
 ---
 
 An options backtest can show a loss on a trade that finished exactly where you expected, and a gain on one that barely moved. That is not the report behaving oddly.
