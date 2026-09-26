@@ -13,7 +13,7 @@ This file is the source of truth for project state, decisions, and constraints.
 
 ## Current Status
 
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-26
 
 **Phase:** Site is **live at taurusconsultancy.com, served by GitHub Pages** (discovered
 2026-09-13 — DNS already pointed there; Hostinger was never used). Blog pipeline built.
@@ -65,6 +65,14 @@ Blockers before any paid traffic: untested lead form, no analytics.
       per-post structured data; CONTRIBUTING.md. See [Blog](#blog). One seed post live.
 - [x] **Production deploy = GitHub Pages on push to `main`.** `NOINDEX=1` removed from
       the deploy workflow. PR check workflow added (`.github/workflows/check.yml`).
+- [x] **AI conversion brief for authors (2026-09-26)** — `reference_blog.md` at the repo
+      root. An author attaches it to any AI chat with their draft (PDF/DOC/TXT) and
+      images, sends only the title, and gets back a `content/blog/<slug>/` folder that
+      builds. Pointed to from CONTRIBUTING.md §7. See [Blog](#blog).
+- [x] **Image-prompt brief `reference_image.md` (2026-09-26)** — attached alongside when
+      a draft has no images. The AI adds one illustration slot and writes the Nano
+      Banana prompt in the site palette. Generated charts are banned (fabricated data).
+      Build now **fails on a referenced file that is missing** from the post folder.
 
 ### Pending
 - [ ] **Push the 2026-09-13 changes** so the live site stops being noindexed and the
@@ -87,6 +95,7 @@ Blockers before any paid traffic: untested lead form, no analytics.
       bylines (`src/authors.js`) are the agreed first step.
 - [ ] **Blog content** — pipeline exists; the writing is the work now. Competitor's only
       real moat is ~30k words; see [Competitive Position](#competitive-position).
+      Authors with drafts in other formats convert them via `reference_blog.md`.
       Phase 3 items when a post needs them: per-post OG image, tag/author pages.
 
 ### Open Questions (need user input)
@@ -372,6 +381,14 @@ scripts/build-blog.mjs      Markdown → HTML: frontmatter validation, wording l
 scripts/new-post.mjs        `npm run new-post -- "Title"` scaffolds a draft
 CONTRIBUTING.md             The authors' end-to-end guide. Keep it in step with
                             build-blog.mjs — it is what non-developers read.
+reference_blog.md           Brief FOR AN AI MODEL: attach with a draft + images, send
+                            the title, get a build-ready post folder back. Mirrors
+                            build-blog.mjs (lint regexes, frontmatter, languages) and
+                            embeds the seed post as the style example. Keep in step.
+reference_image.md          Companion brief, attached when a draft has no images: the
+                            AI specs ONE conceptual illustration (never a chart) and
+                            writes the image-model prompt using the CSS tokens. Update
+                            its hex values if the palette in main.css changes.
 src/
   config.js                 SINGLE SOURCE OF TRUTH for brand, form, analytics,
                             motion and report flags
@@ -415,6 +432,9 @@ here. What Claude needs to know:
   and BlogPosting / BreadcrumbList / FAQPage structured data. In dev, a watcher
   regenerates on any change under `content/blog/` or `src/templates/`.
 - **The build fails** on: missing frontmatter field, unknown author key, invalid slug,
+  a **referenced local image or file that is not in the post folder** (added
+  2026-09-26 — Vite otherwise ships a broken `<img>` with no error; unreferenced
+  files in the folder only warn, since they are published regardless),
   or a **hard wording violation** (`HARD_PATTERNS` in `scripts/build-blog.mjs`:
   guaranteed returns, "you should buy", price targets, etc.). Soft patterns warn.
   Code blocks and maths are stripped before linting. This is the machine half of the
@@ -434,6 +454,16 @@ here. What Claude needs to know:
   overridden to `var(--surface)` in CSS. Language list is in `getMarkdown()`; add one
   there if a post needs it.
 - **`npm run blog:check`** validates every post without building the site.
+- **`reference_blog.md` is a second copy of the build rules, on purpose.** It is
+  the brief an author hands to an AI to convert a Word/PDF/text draft into a post
+  folder, so it must be self-contained: it repeats `HARD_PATTERNS` and
+  `SOFT_PATTERNS` verbatim, the Shiki language list, the frontmatter contract, the
+  report-block list from [Sample Report](#sample-report), and the whole seed post.
+  **Any change to `build-blog.mjs`'s lint, required fields, languages or author keys
+  must be mirrored there in the same commit**, or the AI will generate posts that
+  fail the build. It always emits `draft: true`; publishing stays a reviewed PR.
+  Frontmatter `title` and `description` are always double-quoted there because an
+  unquoted colon breaks YAML (verified with gray-matter).
 
 ### Sample Report
 
@@ -776,6 +806,35 @@ competitor — they sell an observability **platform** to mid-size quant teams; 
   illustrative. Bylined `taurus` until real author names are supplied.
 - 2026-09-13: **`.gitignore` uses `/blog/`, not `blog/`.** The bare pattern also
   matched `content/blog/` and would have silently kept every post out of git.
+- 2026-09-26: **AI conversion brief `reference_blog.md` added** so authors who write in
+  Word/PDF/text can attach it plus their draft to any AI, send only the title, and
+  receive a build-ready `content/blog/<slug>/` folder. Written for the model, not the
+  human: imperative, exhaustive, with the lint regexes, the frontmatter contract, the
+  loaded code languages, the six-part anatomy, the voice, the list of report blocks it
+  may reference, and the full seed post as the worked example. Deliberately a second
+  copy of the build rules rather than a pointer, because the AI cannot read the repo;
+  the cost is that `build-blog.mjs` changes must be mirrored. Guardrails baked in: it
+  always emits `draft: true`, never invents numbers, citations or charts, never adds
+  files to the folder other than `index.md` and referenced images (every other file
+  would be published), and returns a Notes block the author pastes into the PR so the
+  reviewer sees what was rewritten or added. The human gate is unchanged.
+- 2026-09-26: **`reference_image.md` added** for drafts with no images: attached with
+  the blog brief, it has the AI put one illustration slot after the opening
+  paragraphs and write a Nano Banana prompt (one prose paragraph, colours as hex and
+  words, "no text" stated early, 16:9) plus a simpler fallback. **Generated images are
+  conceptual only — never a chart, curve, axis, number or ticker** — because an image
+  model drawing a chart draws fabricated data, which on a page selling computed
+  rigour is both a credibility failure and a de facto performance claim. Palette is
+  the site's own tokens (bg `#08090B`, ink `#F4F6F8`, lime `#C6F24E` for a single
+  highlight, or blue `#3987E5` / red `#E5484D` when contrasting honest vs flattering,
+  never all three) so illustrations read as part of the report beside them. Caption
+  carries a fixed disclosure label. One image per post, maximum.
+- 2026-09-26: **Build guard — referenced files must exist.** Tested: a post referencing
+  a missing image built clean with no warning, so the AI workflow (which references a
+  file the author generates afterwards) would have shipped broken images silently.
+  `build-blog.mjs` now fails, naming the file, when a local image or link target is
+  not in the folder, and warns on folder files nothing references. Code and maths
+  are stripped before scanning so a `](./x)` inside a code sample is ignored.
 - 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
   model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
   feature stability). Kept inside the hard positioning rule: we assess a client-supplied

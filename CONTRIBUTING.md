@@ -90,6 +90,10 @@ path. A quoted title becomes the caption.
 SVG is preferred for line charts (crisp at every size, small file). PNG for
 anything photographic. Keep files under about 500 KB.
 
+Every image or file the post links to must be in the folder. A missing one fails
+the build and names the file. A file in the folder that nothing references gets
+a warning, because it is published regardless.
+
 ### Tables
 
 Standard Markdown tables. They scroll sideways on phones instead of breaking
@@ -121,6 +125,9 @@ Suggested shape, borrowed from the posts that rank in this space:
 
 Aim for 1,200 to 2,500 words. Speak to someone who knows what a Sharpe ratio
 is. Sell avoided loss, never gained profit.
+
+Already have the piece written as a document? Section 7 shows how to have an AI
+convert it into this shape for you.
 
 Words that will fail the build: "guaranteed return", "risk-free profit", "will
 make you money", "you should buy", "we recommend buying", "price target".
@@ -169,3 +176,31 @@ wrong, and the built site is attached to the check as a downloadable artifact.
 
 Edit the file on a branch, add `updated: YYYY-MM-DD` to the header, open a PR.
 Do not change the folder name.
+
+## 7. Converting a draft you already have
+
+If the post exists as a Word file, PDF, text file or anything else, you do not
+have to reformat it by hand. `reference_blog.md` in the repo root is a complete
+brief for an AI model: the folder layout, the header fields, every wording
+pattern the build rejects, the house structure and voice, and the seed post as a
+worked example.
+
+1. Open any capable AI chat. Attach `reference_blog.md`, your draft, and any
+   images the draft uses.
+2. Send one line: `Title: <your post title>`. Add `Author: <your key>` if you
+   are in `src/authors.js`.
+3. You get back a folder (or the text of `index.md` plus a rename list for your
+   images) and a short **Notes** block saying what it changed or added.
+4. Drop the folder into `content/blog/`, then continue from section 4 above.
+   Paste the Notes into the pull request so the reviewer knows what to look at.
+
+**No image?** Attach `reference_image.md` as well. The AI then adds one
+illustration slot to the post and hands you a ready prompt for Google's Nano
+Banana (or any image model), with the exact filename to save the result under.
+Generate it, drop the file into the folder, and only then push: the post already
+references it and the build fails until the file is there. Generated images are
+conceptual illustrations only, never charts. The file explains why, and gives
+you a six-line check to run on the result before you save it.
+
+The output always arrives as a draft. Read it before you open the PR: the model
+follows the rules, but the argument is still yours.

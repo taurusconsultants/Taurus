@@ -304,6 +304,26 @@ ${faq
   // Assets beside the post: everything except the Markdown itself.
   const assets = (await readdir(dir)).filter((f) => f !== 'index.md' && !f.startsWith('.'));
 
+  // Every local file the post links to or embeds must sit beside it. Vite does
+  // not check this — a missing image ships as a broken <img> with no error
+  // (verified 2026-09-26). Files nothing references are published too, so warn.
+  const referenced = new Set();
+  for (const m of proseOnly(content).matchAll(/\]\(\s*(?:\.\/)?([^)\s"'#?]+)/g)) {
+    const target = decodeURIComponent(m[1]);
+    if (/^(https?:|mailto:|data:|\/|\.\.\/)/i.test(target)) continue;
+    referenced.add(target);
+  }
+  const missingFiles = [...referenced].filter((f) => !assets.includes(f));
+  if (missingFiles.length) {
+    throw new Error(
+      `[blog] ${slug}: references ${missingFiles.map((f) => `"${f}"`).join(', ')} but the file is not in content/blog/${slug}/. ` +
+        `Add it, or remove the reference. A generated illustration must be created and saved there before pushing.`
+    );
+  }
+  for (const a of assets) {
+    if (!referenced.has(a)) console.warn(`[blog] ${slug}: ⚠ "${a}" is in the post folder but nothing references it — it will be published anyway.`);
+  }
+
   return {
     slug,
     route: `/blog/${slug}/`,
