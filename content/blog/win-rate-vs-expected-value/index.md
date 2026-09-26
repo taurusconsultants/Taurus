@@ -4,7 +4,7 @@ description: "Win rate alone says how often a strategy is right; expected value 
 date: 2026-09-26
 author: taurus
 tags: [expected-value, win-rate, model-evaluation, backtesting]
-draft: true
+draft: false
 ---
 
 A trader posts a strategy with a 90% win rate and calls it proven. A few weeks

@@ -4,7 +4,7 @@ description: "Win rate on its own says nothing about profitability; expected val
 date: 2026-09-26
 author: taurus
 tags: [expected-value, risk-reward, backtesting, trade-evaluation]
-draft: true
+draft: false
 ---
 
 A trader can win nine trades in a row and still be running a strategy with a negative edge. The habit that produces this is familiar: the trader lets the tenth trade run against them rather than close it, because closing it would break the streak, and the loss on that one trade wipes out everything the previous nine produced.
