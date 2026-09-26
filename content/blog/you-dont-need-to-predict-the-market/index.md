@@ -4,7 +4,7 @@ description: "A rule that wins under half its trades can still have positive exp
 date: 2026-09-26
 author: taurus
 tags: [expectancy, probability, backtesting, robustness]
-draft: true
+draft: false
 ---
 
 A strategy backtests well, then loses four trades in a row once it goes live. The instinct is to read that streak as proof the edge was never real, because trading gets framed as a series of correct or incorrect predictions about where price goes next.
