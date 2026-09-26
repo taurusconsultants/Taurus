@@ -434,7 +434,8 @@ here. What Claude needs to know:
 - **The build fails** on: missing frontmatter field, unknown author key, invalid slug,
   a **referenced local image or file that is not in the post folder** (added
   2026-09-26 — Vite otherwise ships a broken `<img>` with no error; unreferenced
-  files in the folder only warn, since they are published regardless),
+  files in the folder only warn, since they are published regardless; images over
+  500 KB also warn, because generated PNGs arrive at 1–2 MB),
   or a **hard wording violation** (`HARD_PATTERNS` in `scripts/build-blog.mjs`:
   guaranteed returns, "you should buy", price targets, etc.). Soft patterns warn.
   Code blocks and maths are stripped before linting. This is the machine half of the
@@ -835,6 +836,37 @@ competitor — they sell an observability **platform** to mid-size quant teams; 
   `build-blog.mjs` now fails, naming the file, when a local image or link target is
   not in the folder, and warns on folder files nothing references. Code and maths
   are stripped before scanning so a `](./x)` inside a code sample is ignored.
+- 2026-09-26: **Briefs revised after the first real run** (post
+  `three-forces-moving-options`, converted in claude.ai from the two briefs; the
+  chat was read from a PDF export). What actually happened: (a) the **first reply
+  was a refusal** — the model read §10's "not about strategy testing at all" clause
+  and declared an explainer on option-premium mechanics out of scope because it
+  contained no test, offering a different "testable" post instead; the author had
+  to say "go ahead anyway". (b) The zip delivery **worked**; an earlier guess that a
+  failed zip caused the empty reply was wrong and has been reversed. (c) The
+  **first image metaphor was a stacked composite** (a tower of three shapes with a
+  ring, lime outline) and rendered as a lamp; the side-by-side version with lime
+  converging lines worked. (d) The author could not tell what the render depicted
+  until they asked twice — the model never stated a key. Fixes: (1) §2 and §10 now
+  say the rule is about *advice, not topic*: explainers are in scope as **Shape B**
+  (`How it works` · `What it means for a backtest`), and out-of-scope is narrowed
+  to recommendations, forecasts, promotion and off-topic — even then the
+  explanatory core is converted. (2) **§0b: the first reply is the deliverable** —
+  no summary, plan, question or refusal; **zip when the interface can make files,
+  text otherwise**, with the Image section and Notes always written out as text.
+  (3) Image brief: **a `Key:` line** (`element = concept`) is mandatory, plus
+  composition rules — side by side not stacked, one shape per concept, accent on
+  the relationship not an outline, the everyday-object check, the one-sentence
+  test; the three-forces picture is recorded as the pattern for "parts make a
+  whole" and the tower as the anti-pattern. (4) **Voice rules the output broke**:
+  no em dashes in prose, no bold lead-ins (use `###`), headings without
+  contractions or second person, the trader's standard term (implied volatility).
+  (5) **Title typos fixed and flagged**, not copied verbatim ("an options").
+  (6) §7.1 **hooks for concept posts**: the spec template's ten sections, the
+  assumptions block, the regime split, the plain-English read, custom KPIs.
+  (7) Compression made explicit (the PNG shipped at 1.1 MB) and the build warns
+  on images over 500 KB. The exact human prompt is printed in §0 of the blog brief
+  and in CONTRIBUTING §7, with a one-line reply to use if the model refuses.
 - 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
   model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
   feature stability). Kept inside the hard positioning rule: we assess a client-supplied

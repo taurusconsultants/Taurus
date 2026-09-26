@@ -20,10 +20,15 @@ Send `Title: <your title>` as usual. The output includes a section headed
 
 1. Copy the prompt from the fenced block into Nano Banana (the Gemini app, or
    Google AI Studio), or into any other image model.
-2. Check the result against the six-line checklist in §7. Regenerate if it fails.
+2. Read the **Key** line first. It says what each shape stands for. Then check
+   the result against the checklist in §8. If you cannot match the shapes in the
+   render to the key, the render failed: regenerate, or use the fallback prompt.
 3. Save it as PNG under the **exact filename** given, into the post folder.
-4. If the file is over about 500 KB, compress it at squoosh.app (OxiPNG, or
-   WebP at quality 80; if you switch to WebP, change the extension in `index.md`).
+4. **Compress it.** Nano Banana returns 1 to 2 MB; the limit is about 500 KB
+   and the build warns above it. Drop the file on squoosh.app, choose OxiPNG
+   (or WebP at quality 80; if you switch to WebP, change the extension in
+   `index.md`), download, replace. Thirty seconds, and it is not optional: an
+   uncompressed image is the single slowest thing on the page.
 5. Only then branch, commit and open the PR. The post already references the
    file, and **the build fails, naming the file, until it is in the folder.**
 
@@ -143,8 +148,10 @@ that borrows them looks like it belongs to the report next to it.
 Flat, editorial, restrained. Thin precise strokes, simple geometric forms,
 generous negative space. Think of the drawn diagrams in a serious technical
 book, not a marketing hero image. A faint paper grain is fine. No glow, no lens
-flare, no depth-of-field blur, no drop shadows, no gradients, no 3D, no
-photographic textures, no "neon cyberpunk", no watercolour.
+flare, no depth-of-field blur, no drop shadows, no 3D, no photographic textures,
+no "neon cyberpunk", no watercolour. No gradients as decoration; a fade inside
+one shape is fine when the fade *is* the metaphor (something decaying, something
+fading out).
 
 ### Composition
 
@@ -180,6 +187,27 @@ have just written, not from the title alone.
    right way and a wrong way, show both with the blue/red scheme. Otherwise show
    the mechanism alone with the lime accent.
 5. **Strip it down.** Remove every element the metaphor survives without.
+6. **Write the key.** One line: `<element> = <concept>` for every element in the
+   picture. If an element has no concept, cut it. If a concept has no element,
+   the metaphor is incomplete. The key goes into the Image to generate section
+   (§8) so the author can judge the render against it.
+
+### Composition rules, learned from renders that failed
+
+- **Side by side, not stacked.** When the idea has several parts, put them in a
+  row, left to right, evenly spaced, at the same height. Reading order carries
+  meaning; a vertical stack reads as one object.
+- **One simple shape per concept.** Never fuse several concepts into one
+  composite object (a tower, a machine, a figure). Composites are read as
+  *things*: a tower of three shapes with a ring became a lamp.
+- **The accent goes on the relationship, not on an outline.** Colour the lines
+  that connect, the point where they meet, the one element that changes. An
+  accent outline around a composite just says "here is an object".
+- **The everyday-object check.** Before writing the prompt, ask whether the
+  arrangement resembles a hat, lamp, face, house, rocket, tree, cup or person.
+  If it could, rearrange. Image models amplify any such resemblance.
+- **The one-sentence test.** If you cannot say in one sentence what each shape
+  stands for, the author will not be able to either. Simplify until you can.
 
 Examples, from method to picture:
 
@@ -194,9 +222,15 @@ Examples, from method to picture:
 | Look-ahead / leakage | Information crossing a boundary backwards | A vertical hairline; small grey marks flowing left to right; one red mark crossing it the wrong way |
 | Slippage and costs | The fill landing away from the intended price | A set of thin concentric rings in off-white; a lime dot at the centre; a red dot displaced to one side, with a short hairline between them |
 | Parameter sensitivity | Neighbouring settings behaving alike or not | A grid of small squares, mostly off-white, with one smooth blue plateau and one isolated red spike |
+| The parts of an option premium (a Shape B concept post) | Three separate forces combining into one number | Three shapes in a row: a solid square (intrinsic value), a rectangle fading from solid to outline (time value), a loose dashed ring (implied volatility); a thin lime line drops from each and the three converge on one lime dot (the premium). **Used** by `three-forces-moving-options`. |
 
-Do not reuse a picture already used by another post. The seed post's
-illustration, if one is ever generated, is the first row of this table.
+The last row is the pattern to copy for any "several parts make one whole"
+concept. Its first draft was a *tower* of the same three shapes with a ring on
+top, outlined in lime; the render was unreadable. Same concepts, wrong
+arrangement.
+
+Do not reuse a picture already used by another post. Posts with illustrations so
+far: `three-forces-moving-options` (the last row). The seed post has none.
 
 ---
 
@@ -271,6 +305,11 @@ field.
 
 ## 8. What you deliver
 
+**All of this goes in the same reply as the post itself**, between the folder and
+the Notes. It is never a follow-up, never offered ("would you like an image
+prompt?"), never held back until asked. If §1 says an image applies, the first
+reply contains the prompt.
+
 In addition to everything `reference_blog.md` §11 asks for:
 
 1. **In `index.md`:** the image line, placed as §3 says, with the alt text,
@@ -282,6 +321,7 @@ In addition to everything `reference_blog.md` §11 asks for:
    File:      <file-name>-illustration.png   → save into the post folder
    Position:  after the opening paragraphs, before "## The problem"
    Size:      landscape 16:9, 1024–1600px wide, PNG, under 500 KB
+   Key:       <element> = <concept>; <element> = <concept>; <element> = <concept>
    Alt:       <alt text>
    Caption:   <caption>
 
@@ -292,12 +332,14 @@ In addition to everything `reference_blog.md` §11 asks for:
    ```<the simpler prompt>```
 
    Check the result before saving:
+   - every element in the Key is there and recognisable; nothing else is
    - no text, letters or numbers anywhere
    - background is flat near-black, edges vanish into a dark page
    - one accent scheme only (lime alone, or blue + red), nothing else coloured
    - no chart, axes, gridlines, people, logos or finance clichés
    - one clear idea, still readable when the image is 300px wide
    - nothing important within 4% of the edges
+   - compressed to under 500 KB at squoosh.app before saving (the raw output is 1–2 MB)
    ```
 
 3. **In the Notes block:** the line
@@ -320,6 +362,8 @@ In addition to everything `reference_blog.md` §11 asks for:
 - [ ] The prompt says "No text, no letters, no numbers" and excludes charts, axes, logos, people and the clichés in §2.
 - [ ] The prompt ends with the 16:9 landscape instruction.
 - [ ] The metaphor comes from this post's mechanism (§5), not from the title's keywords, and does not repeat another post's picture.
+- [ ] A `Key:` line maps every element in the prompt to a concept, and no concept in the post's idea is left without an element.
+- [ ] Parts sit side by side, one simple shape each; nothing stacked or fused into a composite; the arrangement passes the everyday-object check.
 - [ ] Nothing in the prompt asks for a chart, a curve, a number, a ticker, an instrument or a result.
 - [ ] A simpler fallback prompt is supplied.
 - [ ] The Notes block tells the author to generate the file before pushing.

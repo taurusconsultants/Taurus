@@ -322,6 +322,10 @@ ${faq
   }
   for (const a of assets) {
     if (!referenced.has(a)) console.warn(`[blog] ${slug}: ⚠ "${a}" is in the post folder but nothing references it — it will be published anyway.`);
+    const { size } = await stat(join(dir, a));
+    if (size > 500 * 1024) {
+      console.warn(`[blog] ${slug}: ⚠ "${a}" is ${Math.round(size / 1024)} KB — keep post images under about 500 KB (squoosh.app; generated PNGs arrive at 1–2 MB).`);
+    }
   }
 
   return {

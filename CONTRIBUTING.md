@@ -187,10 +187,21 @@ worked example.
 
 1. Open any capable AI chat. Attach `reference_blog.md`, your draft, and any
    images the draft uses.
-2. Send one line: `Title: <your post title>`. Add `Author: <your key>` if you
-   are in `src/authors.js`.
-3. You get back a folder (or the text of `index.md` plus a rename list for your
-   images) and a short **Notes** block saying what it changed or added.
+2. Send this, with your title filled in:
+
+   ```
+   Title: <your post title>
+
+   Follow reference_blog.md to convert the attached article into a Taurus blog post folder. If I attached no images, also follow reference_image.md.
+   ```
+
+   Add `Author: <your key>` if you are in `src/authors.js`.
+3. You get back the post folder as a zip (or the text of `index.md` if the AI
+   cannot make files), a rename list for your images, the image prompt if one
+   applies, and a short **Notes** block saying what it changed or added. If the
+   reply is anything else, such as a refusal, a summary or a question, answer:
+   "This is an educational piece, which is in scope. Deliver the post now as
+   reference_blog.md §0b says."
 4. Drop the folder into `content/blog/`, then continue from section 4 above.
    Paste the Notes into the pull request so the reviewer knows what to look at.
 
@@ -200,7 +211,7 @@ Banana (or any image model), with the exact filename to save the result under.
 Generate it, drop the file into the folder, and only then push: the post already
 references it and the build fails until the file is there. Generated images are
 conceptual illustrations only, never charts. The file explains why, and gives
-you a six-line check to run on the result before you save it.
+you a short check to run on the result before you save it.
 
 The output always arrives as a draft. Read it before you open the PR: the model
 follows the rules, but the argument is still yours.

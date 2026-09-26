@@ -14,20 +14,49 @@ flag it in the notes described in §11.
 
 ## 0. For the human: how to prompt
 
-Attach this file, your draft, and your images. Then send:
+Attach this file, your draft, and your images (plus `reference_image.md` if you
+have no images). Then send:
 
 ```
-Title: <the post title>
+Title: <your post title>
+
+Follow reference_blog.md to convert the attached article into a Taurus blog post folder. If I attached no images, also follow reference_image.md.
 ```
 
-Optional second and third lines:
+Optional lines, only if they apply:
 
 ```
 Author: <your key in src/authors.js>        (default: taurus)
 Date: YYYY-MM-DD                            (default: today)
+Image: no                                   (skip the illustration even with no images)
+Format: text                                (force plain text; default is a zip when the AI can make files)
 ```
 
-You get back a folder. Paste it into `content/blog/`, follow §12, done.
+You get back the post folder as a zip (or the text of `index.md` if the AI
+cannot make files), a rename list for your images, the image prompt with a key to
+what it depicts, and a Notes block. Unzip or paste, then follow §13.
+
+## 0b. For the model: your first reply is the deliverable
+
+The author has already read this file. Do not acknowledge it, summarise it,
+restate its rules, describe what you are about to do, or ask whether to proceed.
+Do not ask a clarifying question: every input has a default (§1), and anything
+you had to assume goes in the Notes, not in a question. **Do not refuse the
+piece because it explains rather than tests**; an explainer is Shape B (§7) and
+is in scope (§10). The first reply contains, in this order and with nothing
+before or after:
+
+1. The folder listing.
+2. The complete `index.md`: as a zip if your interface can create downloadable
+   files, otherwise in one fenced block (four backticks). See §11.
+3. The rename list for any supplied images.
+4. The **Image to generate** section, if `reference_image.md` applies. Always as
+   text in the reply, even when a zip is attached.
+5. The **Notes** block. Always as text in the reply.
+
+If the message has no title, derive one from the article and flag it. If it has
+no article, say so in one line; that is the only case where the first reply is
+not the post.
 
 ---
 
@@ -38,7 +67,7 @@ You receive:
 | Input | Always? | What to do with it |
 |---|---|---|
 | This file | yes | Follow it. |
-| A title | yes | Use it verbatim as `title`. Derive the slug from it (§3). |
+| A title | yes | Use it as `title`, fixing obvious typos and grammar only ("an options" → "an option") and flagging the fix in the Notes. Never rewrite it. Derive the slug from it (§3). |
 | A draft document | yes | The source of every argument, number and claim in the post. |
 | Images | sometimes | Copy into the folder, rename, reference, caption (§6). |
 | An author key | rarely | Use it. Otherwise `author: taurus`. |
@@ -57,8 +86,10 @@ Nothing else goes in the folder. Every non-Markdown file in it is copied to the
 public site as-is, so a `notes.txt` or `README.md` inside the folder would be
 published. Notes go outside the folder (§11).
 
-Deliver as a zip if you can produce files. If you cannot, use the text fallback in
-§10.
+Deliver it as a **zip if your interface can create downloadable files**, otherwise
+as **text** (§11). `Format: zip` or `Format: text` from the author overrides.
+Either way, the Image to generate section and the Notes are written out in the
+reply, never only inside the zip.
 
 ---
 
@@ -69,9 +100,17 @@ does not originate strategies, does not give investment advice, does not
 recommend trades, does not forecast returns, and never mentions price or cost.
 
 Every sentence you write must pass this test: *is it a statement about what a
-test showed, how a method works, or how a report is built?* If it is a statement
-about what a reader should trade, what will happen in a market, or what a
-strategy will earn, it does not ship. Rewrite it as a statement about testing.
+test showed, how a method or mechanism works, or how a report is built?* If it
+is a statement about what a reader should trade, what will happen in a market,
+or what a strategy will earn, it does not ship. Rewrite it as a statement about
+testing or about how the thing works.
+
+**The rule is about advice, not about topic.** It constrains *how* something is
+said, never *whether* a mechanism may be explained. A post that only explains how
+something works, with no test anywhere in it, is fully in scope (Shape B in §7).
+Do not read the sentence above as requiring a test to exist in the source, and
+do not refuse an educational piece on those grounds. §10 lists the only things
+that are actually out of scope.
 
 **Sell avoided loss, never gained profit.** The value of the work is stopping
 someone from funding a strategy that is not there. Never phrase it as improving
@@ -167,7 +206,7 @@ draft: true
 
 | Field | Required | Rules |
 |---|---|---|
-| `title` | yes | Verbatim from the author. **Always double-quoted** (a colon in an unquoted title breaks YAML). Escape inner double quotes as `\"`. |
+| `title` | yes | The author's title, with obvious typos or grammar fixed and nothing else changed (any fix flagged in the Notes). **Always double-quoted** (a colon in an unquoted title breaks YAML). Escape inner double quotes as `\"`. |
 | `description` | yes | One sentence, **under 160 characters** (the build warns above 200; aim lower). Not a repeat of the title. States the problem or the finding, not "In this post we…". Always double-quoted. |
 | `date` | yes | `YYYY-MM-DD`. Today unless the author gives one. Controls ordering on the index. |
 | `author` | yes | A key that exists in `src/authors.js`. Currently the only key is `taurus`. Use what the author gives; otherwise `taurus`. An unknown key fails the build. |
@@ -305,8 +344,21 @@ Every post argues **one idea**, fully. Not five ideas skimmed. If the draft
 contains three ideas, pick the strongest, use it, and list the others in the
 notes as candidate follow-up posts.
 
-The shape, in this order, with these headings unless the content clearly wants
-a more specific title:
+Drafts come in two kinds, and each has its own shape. **Decide which the source
+is before you write, and name the choice in the Notes.**
+
+- **Shape A, a method or test.** The source describes something you *do* to a
+  strategy: a bootstrap, a cross-validation scheme, a deflation, a sensitivity
+  sweep. It has a method, a result, and a limit.
+- **Shape B, a concept or mechanism.** The source explains how something
+  *works*: what moves an option premium, what slippage is made of, why a Sharpe
+  ratio is unstable, what a regime is. There is no test to run; there is a
+  misunderstanding to remove and a consequence for anyone backtesting.
+
+Never force Shape B into Shape A's headings. A concept post with a section called
+"What the test does" is the most visible sign a draft was converted mechanically.
+
+### Shape A: a method or test
 
 | # | Section | What it does | Length |
 |---|---|---|---|
@@ -318,7 +370,19 @@ a more specific title:
 | 5 | `## How this shows up in a Taurus report` | One or two paragraphs. Which block of the sample report this method feeds, what the report states, and one check a reader can run on a report they already have. **Never a market view.** | 100–200 |
 | 6 | `## FAQ` | Three to five `###` questions a reader would actually type into a search engine, each answered in one or two paragraphs. **Must be the last `##` section.** | 250–500 |
 
-Total: **1,200 to 2,500 words** of prose. The build warns below 300. If the draft
+### Shape B: a concept or mechanism
+
+| # | Section | What it does | Length |
+|---|---|---|---|
+| — | *(no heading)* | Two or three short paragraphs. Open with the symptom a trader sees when they misread the concept: the backtest result that made no sense, the position that lost with the underlying unchanged. State what the post is about in the last sentence. | 80–150 words |
+| 1 | `## The problem` | What the misunderstanding costs. Why treating the thing as one number, one cause or one rule hides what is actually happening. | 200–400 |
+| 2 | `## How it works` | The concept itself, precisely. Definitions, formulas, the pieces one at a time. If the concept has named parts, each part gets a `###` sub-heading, not a bold lead-in. | 400–800 |
+| 3 | `## What it means for a backtest` | The consequence for anyone testing a rule that touches this concept: what a report has to separate, measure or state, and what goes wrong in the numbers if it does not. Usually carries the post's one table. | 200–400 |
+| 4 | `## What it does not tell you` | Where the concept stops. What it does not quantify, forecast or cover. | 100–250 |
+| 5 | `## How this shows up in a Taurus report` | Same rules as Shape A. For a concept there is often no single report block; use the hooks in §7.1 (assumptions block, specification, regime split, plain-English read) and stay honest about the fit. | 100–200 |
+| 6 | `## FAQ` | Same rules as Shape A. | 250–500 |
+
+Total for either shape: **1,200 to 2,500 words** of prose. The build warns below 300. If the draft
 is much longer than 2,500 words, cut repetition and asides first, then move
 secondary points to the FAQ, then trim examples. Do not cut the limits section.
 
@@ -346,6 +410,30 @@ All figures in a report are computed from one trade series, so no two numbers
 on the page can disagree. Every engagement starts with a written specification
 (the spec template at `../../spec-template/`), scope is agreed in writing first,
 and a report comes back on a deadline.
+
+**Hooks for a concept post (Shape B).** A concept rarely maps to one report
+block. These are the honest places it can land; pick the one that genuinely
+fits and say so plainly rather than stretching a block to cover it:
+
+- **The specification.** The spec template has ten sections: 01 What do you
+  want answered · 02 Instrument, timeframe and history · 03 Entry rules ·
+  04 Exit rules · 05 Position sizing and risk · 06 Filters and conditions ·
+  07 Session and timing rules · 08 Costs and execution assumptions · 09 Edge
+  cases you haven't decided yet · 10 Metrics you care about. A concept the
+  client has to pin down before testing (which volatility measure, which fill
+  assumption, what counts as a regime) belongs to the section that asks for it.
+- **The assumptions block** of the report: costs, slippage, fill model, data
+  source. Anything about execution, spreads or market microstructure lands here.
+- **The regime split**: performance reported separately in three realised-
+  volatility states. Anything about volatility, event risk or conditions.
+- **The plain-English read** at the end of the report, which states in words
+  what the numbers do and do not support. Anything about interpretation.
+- **Custom KPIs**: a report can carry metrics the client asks for beyond the
+  standard set, so a concept that needs its own measurement can be requested
+  in section 10 of the spec.
+
+End the section, as always, with one check the reader can run on a report or a
+specification they already have.
 
 The six services: backtesting, optimisation, signal visualisation, algo
 deployment, trading-idea refinement, model evaluation (auditing a model the
@@ -383,8 +471,20 @@ Read the worked example in §9 before writing; it is the reference. In brief:
   moves by six points" beats "the tail moves significantly".
 - Confident, plain, a little dry. No hype, no hedging padding ("it is worth
   noting that"), no rhetorical questions in a row, no "in this post we will".
-- Italics for the one phrase in a paragraph that carries the point. Bold almost
-  never. Never a whole bold sentence.
+- **No em dashes or en dashes in prose.** Use a full stop, a comma or a colon.
+  The seed post has none outside a table cell. Dash-heavy text is the clearest
+  signature of machine-written copy and readers notice it.
+- **No bold lead-ins** (`**Intrinsic value.** This is…`). When a section
+  enumerates named parts, each part gets a `###` sub-heading. Bold otherwise
+  almost never, and never a whole sentence.
+- Italics for the one phrase in a paragraph that carries the point.
+- **Headings are plain noun phrases**: no contractions, no second person, no
+  chat. "What it means for a backtest", not "What this means for a premium
+  you're watching".
+- **Use the term a competent trader uses**: implied volatility, theta, vega,
+  slippage, look-ahead. Do not paraphrase a standard term into everyday words
+  ("expected movement" for implied volatility) unless the source does, and then
+  give the standard term once, in brackets, at first use.
 - Sentences that describe what a report *states* or *shows*, not what a reader
   should *do* with their money.
 - End section 5 with a check the reader can run, not with a pitch. The template
@@ -604,25 +704,47 @@ Note that the example ships with `draft: false` because it is already published.
 - A market view, an instrument recommendation, a forecast, a price.
 - Filler to reach the word count. A tight 1,200 words beats a padded 2,000.
 
-**If the source is not about strategy testing at all** (a market commentary, a
-trade idea, a product review), do not convert it. Deliver a short note explaining
-that the piece cannot be published under the positioning rule and, if there is a
-testable method buried in it, suggest the post that could be written about that
-method instead.
+**What is in scope.** Anything that explains, tests or reports on how trading
+strategies and their instruments behave, without telling the reader what to
+trade. Explicitly:
+
+- concept explainers with no test in them (how an option premium is built, what
+  slippage is made of, why a Sharpe ratio is unstable, what a regime is): Shape B;
+- method and validation write-ups: Shape A;
+- pieces about data, execution, costs, model evaluation, statistics, tooling.
+
+A draft does not need a backtest, a dataset, a result or a method to qualify.
+**Never refuse an educational piece.** The positioning rule constrains how things
+are said, not which mechanics may be explained. If you find yourself about to
+write "this piece cannot be published", re-read this paragraph and convert it as
+Shape B.
+
+**What is out of scope**, and the only cases where you do not simply convert: a
+piece whose *purpose* is a trade recommendation or a market forecast ("why X is a
+buy here", "where rates go next"), a promotion of a product, broker or signal
+service, or something unrelated to trading altogether. Even then, if there is an
+explanatory core (a mechanism, a method), convert that core, drop the
+recommendation or forecast, and list every removed passage in the Notes. Deliver
+a refusal note only when nothing convertible remains, and say in one line what
+post could be written from the same material.
 
 ---
 
 ## 11. Delivery format
 
-### 11.1 Preferred: files
+### 11.1 If your interface can create downloadable files: a zip
 
-A zip named `<slug>.zip` that unpacks to the folder in §1. No `__MACOSX`, no
-`.DS_Store`, no nested extra directory, no files other than `index.md` and the
-referenced images.
+A zip named `<slug>.zip` that unpacks to the folder in §1: `index.md` plus the
+author's images, already renamed. No `__MACOSX`, no `.DS_Store`, no nested extra
+directory, no other files. The author unzips it straight into `content/blog/`.
 
-### 11.2 Fallback: text
+The reply around the zip still contains, as text: the folder listing, the
+**Image to generate** section if it applies, and the **Notes**. Never put those
+only inside the zip, and never reply with a description of a zip that was not
+actually produced. If the zip attempt fails, fall back to §11.2 in the same
+reply.
 
-If you cannot produce files, output in this order:
+### 11.2 Otherwise: text, in the reply
 
 1. The folder listing.
 2. `index.md` in full, in a single fenced block opened and closed with **four**
@@ -634,11 +756,20 @@ If you cannot produce files, output in this order:
    Rename:  fig2.svg                                →  block-length-sensitivity.svg
    ```
 
+   Omit this step if no images were supplied.
+
+The author pastes the block into `content/blog/<slug>/index.md` and renames the
+images. This works in every chat interface.
+
+`Format: zip` or `Format: text` from the author overrides the choice.
+
 ### 11.3 Notes to the author (always, outside the folder)
 
 After the deliverable, a short block headed **Notes**, at most ten lines, listing
 only things the author must act on or know:
 
+- Which shape (§7) you used, in one line.
+- Any change to the author's title (a typo or grammar fix), before and after.
 - Sentences removed or rewritten for the positioning rule, quoted, with the
   reason.
 - Sections you added that were not in the source (limits, FAQ, Taurus section).
@@ -669,6 +800,12 @@ If there is nothing to note, write **Notes: none.**
 
 Run every line. Fix, do not report, anything that fails.
 
+**The reply**
+- [ ] Is the post, not a refusal. An explainer with no test in it is in scope (§10, Shape B). Refusal is reserved for §10's out-of-scope list, and even then the convertible core is converted.
+- [ ] Starts with the folder listing. No greeting, no summary of the brief, no plan, no question.
+- [ ] Contains, in order: folder listing, `index.md` (zip or four-backtick block), rename list (if images), Image to generate (if it applies), Notes. Nothing after the Notes.
+- [ ] Image to generate and Notes are written out as text even when a zip is attached.
+
 **Frontmatter**
 - [ ] `title`, `description`, `date`, `author`, `tags`, `draft` all present. Nothing else.
 - [ ] `title` and `description` double-quoted; inner quotes escaped.
@@ -686,7 +823,9 @@ Run every line. Fix, do not report, anything that fails.
 
 **Body**
 - [ ] No `#` heading. Sections are `##`, sub-sections and FAQ questions `###`.
+- [ ] Shape A or Shape B chosen to match the source (§7) and named in the Notes; a concept post has no "What the test does".
 - [ ] Opening paragraphs have no heading; the six sections follow in order; `## FAQ` is last.
+- [ ] No em dashes or en dashes in prose. No bold lead-ins; enumerated parts are `###` sub-headings. Headings have no contractions or second person.
 - [ ] Every image has alt text and a quoted caption that labels the data.
 - [ ] Every table and figure has a data label (backtested / simulated / synthetic / illustrative) in its caption or the sentence before it.
 - [ ] Every code fence names a language from the §6 list, or `text`.
