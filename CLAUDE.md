@@ -867,6 +867,34 @@ competitor — they sell an observability **platform** to mid-size quant teams; 
   (7) Compression made explicit (the PNG shipped at 1.1 MB) and the build warns
   on images over 500 KB. The exact human prompt is printed in §0 of the blog brief
   and in CONTRIBUTING §7, with a one-line reply to use if the model refuses.
+- 2026-09-26: **Figures embedded in the draft document are handled by the brief.**
+  Authors paste charts into Word/PDF rather than attaching them. New procedure in
+  `reference_blog.md` §6: extract when the interface can run code (`.docx` →
+  `word/media/`, ordered by first `r:embed` in `document.xml`, not by filename;
+  PDF raster XObjects by page; `.pptx` → `ppt/media/`), **view every extracted image**
+  and discard decoration, exclude anything presenting a live result (account
+  balances, broker P&L, order tickets) or clearly someone else's, caption with the
+  data label. What cannot be extracted (Word/Excel native charts = chart XML, EMF/WMF,
+  SmartArt, vector graphics inside PDFs, or any figure when the AI has no file
+  tool) goes on an **Export list** with filename, position and export steps, and the
+  Markdown line is still written so the missing-file guard fails the build until
+  the author adds it. **Never redraw or approximate a figure** — a recreated chart
+  is fabricated data. Embedded figures count as author images for
+  `reference_image.md`, so no generated illustration is added unless `Image: yes`.
+- 2026-09-26: **The AI may suggest further visuals, after delivering, and must wait.**
+  `reference_image.md` §10: the complete post is delivered first (the first-run
+  lesson: a question instead of a deliverable is a failure), then an optional
+  `Optional visuals` section closes the reply with at most three suggestions, each
+  typed as *chart from the author's data*, *conceptual diagram* or (added without
+  asking) *table from numbers in the source*, each stating what, why and what the
+  author would need. "No" or silence ends it; a yes gets the whole folder
+  re-delivered with the visuals wired in: a Key/alt/caption/prompt for a diagram, a
+  spec plus a matplotlib skeleton (site chart style, `# --- your data here ---`,
+  nothing synthetic) for a chart. The AI may draw a chart itself only when every
+  number is printed in the source, with the same numbers shown as a table beside
+  it. **Never a chart from data the author does not have, never synthetic or
+  "illustrative" data on the AI's initiative.** Caps: one lead illustration, at most
+  two diagrams, five images in a post. `Visuals: no` turns suggestions off.
 - 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
   model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
   feature stability). Kept inside the hard positioning rule: we assess a client-supplied

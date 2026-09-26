@@ -35,20 +35,38 @@ Send `Title: <your title>` as usual. The output includes a section headed
 To skip the image on a post, add a line `Image: no` to your prompt. To get one
 even though you attached your own images, add `Image: yes`.
 
+**Suggestions.** After delivering the post, the AI may end its reply with an
+`Optional visuals` section: up to three further charts or diagrams it thinks
+would strengthen the post, each with what it would show, why, and what you would
+need to supply. Reply with the numbers you want, or "no". If you say yes to any,
+you get the whole folder again with those visuals wired in, plus a prompt for
+each diagram and a specification (and a matplotlib skeleton) for each chart you
+draw from your own data. Charts are never invented for you. Add `Visuals: no` to
+your prompt to turn suggestions off. Attach this file whenever you want them,
+even if you have images; add `Image: no` if you do not also want a lead
+illustration.
+
 ---
 
 ## 1. When this file applies
 
 | Situation | What you do |
 |---|---|
-| No images attached, no `Image:` line | Specify **exactly one** illustration (this file). |
-| No images attached, `Image: no` | Specify none. Follow `reference_blog.md` alone. |
-| Images attached, no `Image:` line | Specify none. The author's images are the figures. |
-| Images attached, `Image: yes` | Specify one, placed as §3 says, in addition to theirs. |
+| No images attached and none embedded in the draft, no `Image:` line | Specify **exactly one** illustration (this file). |
+| No images anywhere, `Image: no` | Specify none. Follow `reference_blog.md` alone. |
+| Images attached or embedded in the draft, no `Image:` line | Specify none. The author's figures are the images. |
+| Images attached or embedded, `Image: yes` | Specify one, placed as §3 says, in addition to theirs. |
 
-Never more than one generated image per post. Illustrations decorate; tables,
-code and the author's own figures carry the argument. Every image costs load time
-on a site built to be fast, and a second illustration adds nothing a first did not.
+Figures pasted inside the draft document count as the author's images, whether
+they were extracted or put on the Export list (`reference_blog.md` §6, "Figures
+embedded inside the draft document"). Check the draft for them before deciding
+that no images were supplied.
+
+One lead illustration per post, never two. Illustrations decorate; tables, code
+and the author's own figures carry the argument, and every image costs load time
+on a site built to be fast. Further visuals, whether diagrams inside a section or
+charts from the author's data, are added only through §10: suggested after the
+post is delivered, and made only if the author says yes.
 
 ---
 
@@ -367,3 +385,96 @@ In addition to everything `reference_blog.md` §11 asks for:
 - [ ] Nothing in the prompt asks for a chart, a curve, a number, a ticker, an instrument or a result.
 - [ ] A simpler fallback prompt is supplied.
 - [ ] The Notes block tells the author to generate the file before pushing.
+- [ ] If an `Optional visuals` section is present: it is the last thing in the reply, the complete post was delivered before it, it has at most three items each stating kind, why and what the author would need, none needs invented data, and it ends with the question.
+
+---
+
+## 10. Suggesting further visuals, and waiting for the answer
+
+A post sometimes needs more than the lead illustration: a comparison the text
+walks through in numbers, a process with stages, a distribution the reader has
+to imagine. You may suggest such visuals. You do not add them on your own.
+
+### 10.1 The flow
+
+1. **Deliver the post first**, complete, exactly as `reference_blog.md` §0b
+   requires. Suggestions never delay, shorten or replace the deliverable.
+2. **End the reply with a section headed `Optional visuals`**, after the Notes,
+   only if you have at least one suggestion worth making. At most three. Finish
+   with one line: *Reply with the numbers you want, or "no".*
+3. **Wait.** Do nothing until the author answers.
+4. **On "no", on silence, or if the original message contained `Visuals: no`**:
+   nothing further. The first deliverable stands.
+5. **On a choice**: deliver the revised post **in full** (the whole zip or the
+   whole `index.md` block again, never a diff), with each accepted visual's
+   Markdown line inserted at its position, everything the author needs to make
+   it (§10.3), and updated Notes. Same format rules as the first delivery.
+
+### 10.2 What may be suggested
+
+Each suggestion is one of three kinds. Say which.
+
+| Kind | When | Who makes it |
+|---|---|---|
+| **A chart from the author's own data** | The text describes a result, comparison or distribution the author must have measured to write it, and no figure shows it | The author, from their data, in their tool; you give the spec (§10.3). If every number is printed in the source, you may draw it yourself (§10.4). |
+| **A conceptual diagram** | A mechanism with stages or parts that words carry slowly: windows sliding along a timeline, a purge gap, blocks being cut and reassembled | The author, from your prompt, exactly as for the lead illustration (§4 to §7), placed inside the section it explains |
+| **A table** | Numbers already scattered through a paragraph | You, immediately and without asking. A table built from numbers in the source is restructuring, not addition. It is not a suggestion. |
+
+Never suggest:
+
+- a chart whose data the author does not have (nothing in the text implies
+  they measured it);
+- any visual that would need invented, synthetic or "illustrative" data. An
+  illustrative chart is the author's decision and the author's work;
+- a second lead illustration, a decorative image, a stock photo, a screenshot;
+- anything that would take the post above five images in total.
+
+Limits: one lead illustration (§1), at most two accepted diagrams, author charts
+as accepted. If nothing clears these bars, omit the section. Do not invent
+suggestions in order to have something to say.
+
+### 10.3 The form of a suggestion, and of an accepted one
+
+In the `Optional visuals` section each suggestion is three lines:
+
+```
+1. [chart from your data]  Section "What it shows": the two drawdown distributions as overlaid histograms.
+   Why: the text gives only the two tail figures; seeing the whole distributions shift is the argument.
+   You would need: the per-path maximum drawdown values you computed for each method.
+```
+
+Once accepted, each visual gets a full specification in the reply, and its line
+in `index.md`:
+
+- **Chart from the author's data**: filename (`<what-it-shows>.svg`; SVG
+  preferred, PNG accepted), position, exactly what to plot (x, y, series, units,
+  any reference line), the caption with its data label, the alt text, and a
+  **matplotlib skeleton** in the site's chart style (§10.4) with a clearly marked
+  `# --- your data here ---` block and nothing synthetic in it. Add the file to
+  the Export list so the author knows to attach it before pushing; the build
+  fails until it exists.
+- **Diagram**: exactly as §8 for the lead illustration: file, position, Key,
+  alt, caption, prompt, fallback, checklist. Same palette, same hard line (§2),
+  no text inside the image.
+
+### 10.4 Charts you may draw yourself
+
+Only when **every number the chart needs is printed in the source** (a table, a
+list of figures), and only if your interface can run code. Then you may draw
+it, include the SVG in the folder, and say so in the Notes.
+
+- Use the source's numbers exactly. Do not smooth, interpolate, extend or fill
+  in anything.
+- Put the same numbers in a Markdown table beside the chart so a reader can
+  check one against the other.
+- Style, to match the report on the home page: transparent or `#08090B`
+  background; text and axes in `#A3ABB6`; thin horizontal gridlines in
+  `#23272E` only; one series in blue `#3987E5`, a second in red `#E5484D`,
+  never a third colour; no title inside the image (the caption is the title);
+  no legend when the caption can name the series; a plain sans-serif; SVG at
+  about 1200 by 675.
+- The caption carries the data label the source gives (backtested, simulated,
+  illustrative) and the words "Drawn from the figures in the text."
+
+If any number is missing, do not draw. Suggest it as a chart from the author's
+data instead.

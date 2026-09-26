@@ -29,12 +29,21 @@ Optional lines, only if they apply:
 Author: <your key in src/authors.js>        (default: taurus)
 Date: YYYY-MM-DD                            (default: today)
 Image: no                                   (skip the illustration even with no images)
+Visuals: no                                 (no suggestions for further charts or diagrams)
 Format: text                                (force plain text; default is a zip when the AI can make files)
 ```
 
 You get back the post folder as a zip (or the text of `index.md` if the AI
 cannot make files), a rename list for your images, the image prompt with a key to
 what it depicts, and a Notes block. Unzip or paste, then follow §13.
+
+**Images inside your document.** Pictures pasted into a Word file, a Google Doc
+or a PDF are usually pulled out for you and land in the folder, renamed and
+captioned. Three things cannot be pulled out, and the reply will give you an
+**Export list** for them instead: charts made inside Word or Excel (save them as
+a picture first), vector charts inside a PDF (export a PNG from the tool that
+drew them), and anything at all when the AI has no file tool. Attaching your
+images separately as PNG or SVG always works and is the safest route.
 
 ## 0b. For the model: your first reply is the deliverable
 
@@ -49,10 +58,16 @@ before or after:
 1. The folder listing.
 2. The complete `index.md`: as a zip if your interface can create downloadable
    files, otherwise in one fenced block (four backticks). See §11.
-3. The rename list for any supplied images.
+3. The rename list for any supplied images, and the **Export list** for any
+   figure embedded in the draft that could not be extracted (§6).
 4. The **Image to generate** section, if `reference_image.md` applies. Always as
    text in the reply, even when a zip is attached.
 5. The **Notes** block. Always as text in the reply.
+6. Only if `reference_image.md` is attached and there is something worth
+   suggesting: its **Optional visuals** section (`reference_image.md` §10), at
+   most three items, ending the reply with a question. It comes after the
+   complete post, never instead of it, and the answer is handled in a second
+   turn.
 
 If the message has no title, derive one from the article and flag it. If it has
 no article, say so in one line; that is the only case where the first reply is
@@ -68,8 +83,8 @@ You receive:
 |---|---|---|
 | This file | yes | Follow it. |
 | A title | yes | Use it as `title`, fixing obvious typos and grammar only ("an options" → "an option") and flagging the fix in the Notes. Never rewrite it. Derive the slug from it (§3). |
-| A draft document | yes | The source of every argument, number and claim in the post. |
-| Images | sometimes | Copy into the folder, rename, reference, caption (§6). |
+| A draft document | yes | The source of every argument, number and claim in the post. If figures are embedded in it, extract them or list them for export (§6, "Figures embedded inside the draft document"). |
+| Images, attached separately or embedded in the draft | sometimes | Copy into the folder, rename, reference, caption (§6). Embedded ones: extract, view, and keep only real figures. |
 | An author key | rarely | Use it. Otherwise `author: taurus`. |
 | A date | rarely | Use it. Otherwise today's date. |
 | `reference_image.md` | sometimes | When attached and no images were supplied, follow it as well: one conceptual illustration slot plus the prompt to generate it (§6). |
@@ -206,7 +221,7 @@ draft: true
 
 | Field | Required | Rules |
 |---|---|---|
-| `title` | yes | The author's title, with obvious typos or grammar fixed and nothing else changed (any fix flagged in the Notes). **Always double-quoted** (a colon in an unquoted title breaks YAML). Escape inner double quotes as `\"`. |
+| `title` | yes | The author's title, with obvious typos or grammar fixed and nothing else changed (any fix flagged in the Notes). **Sentence case**: only the first word and proper nouns capitalised ("The win-rate illusion: why expected value matters", not "The Win-Rate Illusion: Why Expected Value Matters"), matching every existing post; changing case is not a rewrite. **Always double-quoted** (a colon in an unquoted title breaks YAML). Escape inner double quotes as `\"`. |
 | `description` | yes | One sentence, **under 160 characters** (the build warns above 200; aim lower). Not a repeat of the title. States the problem or the finding, not "In this post we…". Always double-quoted. |
 | `date` | yes | `YYYY-MM-DD`. Today unless the author gives one. Controls ordering on the index. |
 | `author` | yes | A key that exists in `src/authors.js`. Currently the only key is `taurus`. Use what the author gives; otherwise `taurus`. An unknown key fails the build. |
@@ -308,6 +323,72 @@ Do not add maths for decoration. Maths is exempt from the lint.
   generate the file. It is never a chart and never stands in for a described
   figure. This is the one case where `index.md` may reference a file that is not
   yet in the folder; the build fails, naming the file, until the author adds it.
+
+### Figures embedded inside the draft document
+
+Authors often paste charts and screenshots straight into the Word file or PDF
+instead of attaching them. Those figures are the author's images and the post
+needs them. Handle them in this order.
+
+**1. Extract, if your interface can run code and create files.**
+
+- `.docx` is a zip. Every embedded raster is under `word/media/`. The filenames
+  there (`image1.png`, `image2.jpeg`…) follow insertion order, not page order.
+  Order them by the first appearance of their relationship id in
+  `word/document.xml` (`r:embed="rIdN"`, resolved through
+  `word/_rels/document.xml.rels`). Google Docs exports and `.odt` behave the
+  same way.
+- `.pdf`: extract the embedded raster images (image XObjects) page by page, in
+  reading order.
+- `.pptx`: `ppt/media/`, ordered by slide.
+- Convert to PNG (keep JPG for photographs). Downscale anything wider than
+  1600px. Keep each under 500 KB.
+
+**2. Look at every extracted image before using it.** You can view images. Do.
+
+- Discard decoration: logos, icons, bullet glyphs, header and footer art,
+  signatures, blank or single-colour images, anything under about 200px.
+- Match each real figure to the place in the text where the source shows it and
+  put the Markdown line there, with the caption the source gives it. If the
+  source has no caption, write one from the surrounding text. Never invent a
+  number that is not in the source.
+- Apply the label rule: a chart of results is captioned as backtested,
+  simulated or illustrative, with the period if the source states it.
+- **Do not include**: screenshots of live account balances, broker P&L
+  statements, order tickets or anything that presents a live result; charts or
+  images that are clearly someone else's (another site's watermark, a news
+  graphic) unless the source credits them, in which case the caption names the
+  source. List every excluded image in the Notes with the reason.
+- If an extracted raster is small or blurry (under about 600px wide, visibly
+  compressed), use it and ask for a re-export in the Notes.
+
+**3. What cannot be extracted: write an Export list instead.**
+
+- Charts made inside Word, Excel or PowerPoint (Insert → Chart) are chart XML,
+  not pictures. SmartArt, drawn shapes and Windows metafiles (`.emf`, `.wmf`)
+  convert badly. Vector graphics inside a PDF (a matplotlib or Excel chart saved
+  to PDF) are drawing commands, not images.
+- For each such figure, still write its Markdown line at the right place with
+  the intended filename, and add a line to an **Export list** in the reply:
+
+  ```
+  Export:  figure on page 3, "IV term structure before and after earnings"  →  iv-term-structure.png
+           Word: right-click the chart → Save as Picture → PNG.
+           Google Docs: File → Download → Web page (.html, zipped); the images are in the zip.
+           From the tool that drew it: export PNG at 2x, or SVG.
+  ```
+
+- **Never redraw, regenerate or approximate a figure you could not extract.** A
+  recreated chart is fabricated data. The build fails, naming the file, until
+  the author adds it. That is the safety net working, not a problem to solve.
+
+**4. If your interface cannot create files at all**, skip step 1 and produce the
+Export list for every figure in the draft, with filename and position. The
+author exports them by hand.
+
+Any figure extracted or exported this way counts as an image supplied by the
+author: `reference_image.md` then specifies no generated illustration unless the
+author wrote `Image: yes`.
 
 ### Tables
 
@@ -735,14 +816,15 @@ post could be written from the same material.
 ### 11.1 If your interface can create downloadable files: a zip
 
 A zip named `<slug>.zip` that unpacks to the folder in §1: `index.md` plus the
-author's images, already renamed. No `__MACOSX`, no `.DS_Store`, no nested extra
-directory, no other files. The author unzips it straight into `content/blog/`.
+author's images, attached or extracted from the draft, already renamed. No
+`__MACOSX`, no `.DS_Store`, no nested extra directory, no other files. The
+author unzips it straight into `content/blog/`.
 
 The reply around the zip still contains, as text: the folder listing, the
-**Image to generate** section if it applies, and the **Notes**. Never put those
-only inside the zip, and never reply with a description of a zip that was not
-actually produced. If the zip attempt fails, fall back to §11.2 in the same
-reply.
+**Export list** if any figure could not be extracted, the **Image to generate**
+section if it applies, and the **Notes**. Never put those only inside the zip,
+and never reply with a description of a zip that was not actually produced. If
+the zip attempt fails, fall back to §11.2 in the same reply.
 
 ### 11.2 Otherwise: text, in the reply
 
@@ -757,9 +839,12 @@ reply.
    ```
 
    Omit this step if no images were supplied.
+4. The **Export list** (§6) for every figure embedded in the draft, since in
+   this mode nothing can be extracted for the author.
 
-The author pastes the block into `content/blog/<slug>/index.md` and renames the
-images. This works in every chat interface.
+The author pastes the block into `content/blog/<slug>/index.md`, renames the
+attached images and exports the embedded ones. This works in every chat
+interface.
 
 `Format: zip` or `Format: text` from the author overrides the choice.
 
@@ -774,6 +859,9 @@ only things the author must act on or know:
   reason.
 - Sections you added that were not in the source (limits, FAQ, Taurus section).
 - Images described in the source but not supplied.
+- Figures found embedded in the draft: which were extracted, which were
+  excluded and why (decoration, live result, not the author's), which are on
+  the Export list, which need a sharper re-export.
 - If an illustration was specified under `reference_image.md`: its filename, and
   that the build fails until the author generates it and saves it into the folder.
 - Ideas from the source that were cut and could be their own post.
@@ -803,7 +891,7 @@ Run every line. Fix, do not report, anything that fails.
 **The reply**
 - [ ] Is the post, not a refusal. An explainer with no test in it is in scope (§10, Shape B). Refusal is reserved for §10's out-of-scope list, and even then the convertible core is converted.
 - [ ] Starts with the folder listing. No greeting, no summary of the brief, no plan, no question.
-- [ ] Contains, in order: folder listing, `index.md` (zip or four-backtick block), rename list (if images), Image to generate (if it applies), Notes. Nothing after the Notes.
+- [ ] Contains, in order: folder listing, `index.md` (zip or four-backtick block), rename and Export lists (if any), Image to generate (if it applies), Notes. After the Notes, nothing except an `Optional visuals` section under `reference_image.md` §10, which ends the reply with its question.
 - [ ] Image to generate and Notes are written out as text even when a zip is attached.
 
 **Frontmatter**
@@ -820,6 +908,7 @@ Run every line. Fix, do not report, anything that fails.
 - [ ] Exactly one Markdown file, named `index.md`.
 - [ ] Every image referenced in `index.md` exists in the folder; every file in the folder is referenced. Sole exception: an illustration specified under `reference_image.md`, which the author generates afterwards and which is named in the Image to generate section and in the Notes.
 - [ ] Image file names are lowercase kebab-case with a correct extension.
+- [ ] Every figure embedded in the draft is either extracted into the folder (viewed, confirmed a real figure, not decoration or a live result) or on the Export list with a filename and a position. None was redrawn or approximated.
 
 **Body**
 - [ ] No `#` heading. Sections are `##`, sub-sections and FAQ questions `###`.

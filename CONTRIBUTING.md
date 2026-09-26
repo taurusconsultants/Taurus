@@ -213,5 +213,24 @@ references it and the build fails until the file is there. Generated images are
 conceptual illustrations only, never charts. The file explains why, and gives
 you a short check to run on the result before you save it.
 
+**Images inside your document.** Pictures pasted into a Word file, Google Doc
+or PDF are usually extracted for you and arrive in the folder, renamed and
+captioned. Charts made inside Word or Excel, vector charts inside a PDF, and
+anything at all when the AI has no file tool cannot be extracted; the reply then
+gives you an **Export list** naming each figure, the filename to save it under
+and how to export it. Save them into the folder before you push. The AI is told
+never to redraw a chart it could not extract, and the build fails until the
+file is there. Attaching your images separately as PNG or SVG is always the
+safest route.
+
+**Optional visuals.** With `reference_image.md` attached, the AI may end its
+reply with a section headed *Optional visuals*: up to three suggestions for
+further charts or diagrams, after the finished post. Each says what it would show, why, and what you would need to
+supply. Answer with the numbers you want or "no". On a yes you get the whole
+folder again with those visuals in place: a prompt for each diagram, and for
+each chart a specification plus a matplotlib skeleton you fill with your own
+data. The AI never draws a chart from data it does not have. Add `Visuals: no`
+to your prompt if you do not want suggestions.
+
 The output always arrives as a draft. Read it before you open the PR: the model
 follows the rules, but the argument is still yours.
