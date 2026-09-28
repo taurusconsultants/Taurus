@@ -144,7 +144,7 @@ export function initForm(cfg, brand) {
           '  it must be a bare 36-character UUID with no prefix.'
       );
       status.className = 'form-status bad';
-      status.innerHTML = `Something went wrong sending that. Please message us on WhatsApp, or email <a href="mailto:${brand.email}">${brand.email}</a>.`;
+      status.innerHTML = `Something went wrong sending that. Please ${brand.showWhatsapp ? 'message us on WhatsApp, or ' : ''}email <a href="mailto:${brand.email}">${brand.email}</a>.`;
       btn.disabled = false;
       label.textContent = 'Send enquiry';
     }

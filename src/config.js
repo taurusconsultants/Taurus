@@ -45,14 +45,21 @@ export const brand = {
     'We backtest, optimise, visualise and deploy the trading strategies you specify — rigorously, by hand, with a full report at the end.',
 
   // -- Contact --------------------------------------------------------------
+  // Phone / WhatsApp is switched OFF site-wide (2026-09-28). With this false,
+  // the build strips every <!-- @whatsapp --> block from the output, so the
+  // number appears nowhere on the site, and the <!-- @no-whatsapp --> blocks
+  // (form / email CTAs) take their place. Set to true to bring it all back;
+  // the markup and the number below are kept ready for that.
+  showWhatsapp: false,
+
   // WhatsApp: FULL international format — country code + number, digits only,
   // no +, no spaces. India = 91, US = 1.
-  //   +91 90164 51019  ->  '919016451019'   ✅ correct
-  //         9016451019  ->  '9016451019'     ❌ no country code, link dies
+  //   +91 90161 35610  ->  '919016135610'   ✅ correct
+  //         9016135610  ->  '9016135610'     ❌ no country code, link dies
   // Without the country code wa.me cannot resolve the account and every
   // WhatsApp click fails silently. `npm run build` warns if this looks wrong.
-  whatsappNumber: '919016451019',
-  whatsappDisplay: '+91 90164 51019',
+  whatsappNumber: '919016135610',
+  whatsappDisplay: '+91 90161 35610',
   // Deliberately a LOW-COMMITMENT opener. Asking a stranger to send their
   // proprietary rules on first contact is the biggest possible ask, and it
   // adversely selects: whoever has a genuinely good edge won't do it.

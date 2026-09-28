@@ -86,7 +86,7 @@ Prepared by: ______________________    Date: ______________
 
 
 ---
-Send to: ${brand.email}  ·  WhatsApp ${brand.whatsappDisplay}
+Send to: ${brand.email}${brand.showWhatsapp ? `  ·  WhatsApp ${brand.whatsappDisplay}` : ''}
 ${brand.name} tests and reports on client-specified strategies. We do not
 provide investment advice or trade recommendations.
 `;

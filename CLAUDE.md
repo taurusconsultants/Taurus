@@ -13,7 +13,7 @@ This file is the source of truth for project state, decisions, and constraints.
 
 ## Current Status
 
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-28
 
 **Phase:** Site is **live at taurusconsultancy.com, served by GitHub Pages** (discovered
 2026-09-13 — DNS already pointed there; Hostinger was never used). Blog pipeline built.
@@ -73,6 +73,10 @@ Blockers before any paid traffic: untested lead form, no analytics.
       a draft has no images. The AI adds one illustration slot and writes the Nano
       Banana prompt in the site palette. Generated charts are banned (fabricated data).
       Build now **fails on a referenced file that is missing** from the post folder.
+- [x] **Phone / WhatsApp hidden site-wide (2026-09-28)** — `brand.showWhatsapp: false`
+      in `src/config.js`. The markup is kept, not deleted; the stored number is now
+      `919016135610` (+91 90161 35610), ready for when it is switched back on. Contact
+      is form + email only until then. See [Lead capture](#lead-capture).
 
 ### Pending
 - [ ] **Push the 2026-09-13 changes** so the live site stops being noindexed and the
@@ -260,6 +264,17 @@ Two parallel paths, both prominent:
    - What they're seeking from us (free text) — **always required**
 
 Keep the form to these three fields. Every extra field costs conversions.
+
+**WhatsApp is currently OFF (`brand.showWhatsapp: false`, since 2026-09-28).** The
+switch works through feature blocks in the HTML: `<!-- @whatsapp -->…<!-- /@whatsapp -->`
+ships only when the flag is on, `<!-- @no-whatsapp -->…<!-- /@no-whatsapp -->` only
+when it is off (hero CTA → `#contact`, spec page → "Email it to us"). They are stripped
+by `applyFeatures()` in `vite.config.js` *before* token substitution, so the wa.me link
+never reaches `dist/`. Because `config.js` is also bundled for the browser, the plugin's
+`transform` hook blanks `whatsappNumber` / `whatsappDisplay` in the client copy, and
+`writeBundle` **fails the build** if any emitted file still contains the number. JS
+copy that mentions WhatsApp (`src/spec.js` clipboard text, the form's error message)
+checks `brand.showWhatsapp`. Switching it back on is a one-value edit.
 
 **Contact rule: email OR phone, at least one — never both mandatory.** Neither input
 carries an HTML `required` attribute; the rule lives in `validate()` in
@@ -895,6 +910,17 @@ competitor — they sell an observability **platform** to mid-size quant teams; 
   it. **Never a chart from data the author does not have, never synthetic or
   "illustrative" data on the AI's initiative.** Caps: one lead illustration, at most
   two diagrams, five images in a post. `Visuals: no` turns suggestions off.
+- 2026-09-28: **Phone number removed from the site, code kept.** At the user's request,
+  every WhatsApp/phone surface (hero CTA, contact card, spec-page button, clipboard
+  text, form error message) is hidden behind `brand.showWhatsapp: false` instead of
+  being deleted, and the stored number was replaced with `919016135610` for later
+  use. Hidden means *absent from `dist/`*, not CSS-hidden: a `display:none` block would
+  still hand the number to anyone reading the source, and the JS bundle carried it
+  too until the client copy of `config.js` was blanked. The build now fails if the
+  number leaks while the flag is off. The hero keeps its primary CTA (pointing at
+  the form) so the first screen still has one clear action. The visitor's own
+  "Contact number" field in the form is unrelated and unchanged. Note: the repo is
+  public, so the number remains readable in `src/config.js` on GitHub.
 - 2026-09-08: Added **Model evaluation** as a sixth service (card 06) — validating a
   model the client already trained (leakage/look-ahead audit, purged & embargoed CV,
   feature stability). Kept inside the hard positioning rule: we assess a client-supplied

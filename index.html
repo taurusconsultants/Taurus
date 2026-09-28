@@ -108,10 +108,17 @@
     </p>
 
     <div class="hero-cta reveal">
+      <!-- WhatsApp CTA is behind brand.showWhatsapp; while it is off, the
+           primary CTA goes to the form instead. -->
+      <!-- @whatsapp -->
       <a class="btn btn-primary btn-glow" href="{{brand.whatsappLink}}" target="_blank" rel="noopener" data-track="whatsapp-hero">
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm5.8 14.16c-.24.68-1.42 1.3-1.95 1.34-.5.05-1.13.07-1.83-.11-.42-.11-.96-.29-1.66-.59-2.92-1.26-4.82-4.2-4.97-4.4-.14-.2-1.19-1.58-1.19-3.02 0-1.43.75-2.14 1.02-2.43.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.59.83 2.02.9 2.17.07.14.12.31.02.51-.1.2-.15.31-.29.48-.14.16-.3.37-.43.49-.14.14-.29.3-.13.58.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.42.29.14.46.12.63-.07.17-.2.72-.84.92-1.13.19-.29.39-.24.65-.14.27.09 1.7.8 1.99.95.29.14.48.22.55.34.07.12.07.7-.17 1.38Z"/></svg>
         Find out if it's real
       </a>
+      <!-- /@whatsapp -->
+      <!-- @no-whatsapp -->
+      <a class="btn btn-primary btn-glow" href="#contact">Find out if it's real</a>
+      <!-- /@no-whatsapp -->
       <a class="btn btn-ghost btn-arrow" href="#report">See what you'd get back<span aria-hidden="true">→</span></a>
     </div>
 
@@ -828,6 +835,7 @@
         <li>Your idea is never traded, resold or reused</li>
       </ul>
 
+      <!-- @whatsapp -->
       <a class="wa-card reveal" href="{{brand.whatsappLink}}" target="_blank" rel="noopener" data-track="whatsapp-contact">
         <span class="wa-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm5.8 14.16c-.24.68-1.42 1.3-1.95 1.34-.5.05-1.13.07-1.83-.11-.42-.11-.96-.29-1.66-.59-2.92-1.26-4.82-4.2-4.97-4.4-.14-.2-1.19-1.58-1.19-3.02 0-1.43.75-2.14 1.02-2.43.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.59.83 2.02.9 2.17.07.14.12.31.02.51-.1.2-.15.31-.29.48-.14.16-.3.37-.43.49-.14.14-.29.3-.13.58.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.42.29.14.46.12.63-.07.17-.2.72-.84.92-1.13.19-.29.39-.24.65-.14.27.09 1.7.8 1.99.95.29.14.48.22.55.34.07.12.07.7-.17 1.38Z"/></svg>
@@ -838,6 +846,7 @@
         </span>
         <span class="wa-arrow" aria-hidden="true">→</span>
       </a>
+      <!-- /@whatsapp -->
 
       <p class="contact-alt">Prefer email? <a href="mailto:{{brand.email}}">{{brand.email}}</a></p>
     </div>

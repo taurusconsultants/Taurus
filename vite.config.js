@@ -106,12 +106,52 @@ function brandTokens(site) {
     'site.year': String(new Date().getFullYear()),
   };
 
+  // Feature blocks. Markup between <!-- @name --> and <!-- /@name --> ships
+  // only when the flag is on; <!-- @no-name --> … <!-- /@no-name --> only when
+  // it is off. Stripped here, before token substitution, so a hidden block's
+  // tokens (e.g. the wa.me link, which carries the number) never reach dist/.
+  const features = { whatsapp: brand.showWhatsapp };
+  const applyFeatures = (html) =>
+    html.replace(/<!--\s*@(no-)?(\w+)\s*-->([\s\S]*?)<!--\s*\/@\1\2\s*-->/g, (match, no, name, body) => {
+      if (!(name in features)) {
+        console.warn(`[brand-tokens] unknown feature block: @${no || ''}${name}`);
+        return match;
+      }
+      return Boolean(features[name]) !== Boolean(no) ? body : '';
+    });
+
   return {
     name: 'brand-tokens',
+
+    // config.js is also bundled for the browser (main.js, spec.js), so hiding
+    // the markup alone would still ship the number inside the JS. Blank it in
+    // the client copy; vite.config.js reads the real file and is unaffected.
+    transform(code, id) {
+      if (brand.showWhatsapp || !id.endsWith('/src/config.js')) return null;
+      return code.replace(/(whatsapp(?:Number|Display)\s*:\s*)(['"`])[^'"`]*\2/g, "$1''");
+    },
+
+    // Guard for the above: with WhatsApp hidden, no emitted file may contain
+    // the number in any form. Fails the build (and so the deploy) if one does.
+    writeBundle(_opts, bundle) {
+      if (brand.showWhatsapp) return;
+      const needles = [waDigits, waDigits.slice(-10), brand.whatsappDisplay].filter(Boolean);
+      const leaks = Object.values(bundle)
+        .filter((f) => {
+          const text = f.type === 'chunk' ? f.code : typeof f.source === 'string' ? f.source : '';
+          return needles.some((n) => text.includes(n));
+        })
+        .map((f) => f.fileName);
+      if (leaks.length) {
+        throw new Error(
+          `[brand] showWhatsapp is false but the number still appears in: ${leaks.join(', ')}`
+        );
+      }
+    },
     transformIndexHtml: {
       order: 'pre',
       handler(html, ctx) {
-        let out = html.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (match, key) => {
+        let out = applyFeatures(html).replace(/\{\{\s*([\w.]+)\s*\}\}/g, (match, key) => {
           if (key in tokens) return tokens[key];
           console.warn(`[brand-tokens] unknown token: ${match}`);
           return match;
